@@ -9,12 +9,20 @@ import '../../domain/usecases/notes/update_note_usecase.dart';
 import '../../domain/usecases/notes/delete_note_usecase.dart';
 import '../../domain/usecases/notes/search_notes_usecase.dart';
 import '../../presentation/bloc/notes/notes_bloc.dart';
+import 'user_preferences_service.dart';
+import 'theme_manager.dart';
 
 final GetIt sl = GetIt.instance;
 
 Future<void> initializeDependencies() async {
   // Core
   sl.registerLazySingleton<DatabaseHelper>(() => DatabaseHelper());
+  
+  // Services
+  sl.registerLazySingleton<UserPreferencesService>(() => UserPreferencesService.instance);
+  await sl<UserPreferencesService>().init();
+  
+  sl.registerLazySingleton<ThemeManager>(() => ThemeManager(sl()));
   
   // Initialize database and add sample data
   await _initializeSampleData();

@@ -104,3 +104,16 @@ class RefreshNotesEvent extends NotesEvent {
   @override
   List<Object?> get props => [userId];
 }
+
+class LoadNotesByDateEvent extends NotesEvent {
+  final DateTime date;
+  final String? userId;
+
+  const LoadNotesByDateEvent({
+    required this.date,
+    this.userId,
+  });
+
+  @override
+  List<Object?> get props => [date, userId];
+}

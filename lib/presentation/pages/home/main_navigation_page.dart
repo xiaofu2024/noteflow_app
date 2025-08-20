@@ -44,7 +44,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   final List<Widget> _pages = const [
     NotesPageWrapper(),
-    CalendarPage(),
+    CalendarPageWrapper(),
     SearchPageWrapper(),
     SettingsPage(),
   ];

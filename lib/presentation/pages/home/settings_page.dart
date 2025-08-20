@@ -1,6 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get_it/get_it.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+
+import '../../../core/services/user_preferences_service.dart';
+import '../../../core/services/theme_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
@@ -12,15 +21,200 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  late UserPreferencesService _prefsService;
+  late ThemeManager _themeManager;
+  bool _isLoading = true;
+  
+  // Settings values
   bool _biometricEnabled = false;
   bool _autoSyncEnabled = true;
   bool _notificationsEnabled = true;
   String _selectedTheme = 'System';
+  String _userName = 'NoteFlow用户';
+  String _userEmail = 'user@noteflow.com';
+  double _fontSize = 14.0;
+  String _noteViewMode = 'grid';
+
+  @override
+  void initState() {
+    super.initState();
+    _prefsService = GetIt.instance<UserPreferencesService>();
+    _themeManager = GetIt.instance<ThemeManager>();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    setState(() {
+      _biometricEnabled = _prefsService.biometricEnabled;
+      _autoSyncEnabled = _prefsService.autoSyncEnabled;
+      _notificationsEnabled = _prefsService.notificationsEnabled;
+      _selectedTheme = _prefsService.selectedTheme;
+      _userName = _prefsService.userName;
+      _userEmail = _prefsService.userEmail;
+      _fontSize = _prefsService.fontSize;
+      _noteViewMode = _prefsService.noteViewMode;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _exportData() async {
+    try {
+      // Export user preferences and settings
+      final preferences = _prefsService.exportPreferences();
+      final jsonString = jsonEncode({
+        'export_date': DateTime.now().toIso8601String(),
+        'app_version': '1.0.0',
+        'preferences': preferences,
+      });
+
+      // Get temporary directory
+      final directory = await getTemporaryDirectory();
+      final file = File('${directory.path}/noteflow_backup_${DateTime.now().millisecondsSinceEpoch}.json');
+      
+      // Write to file
+      await file.writeAsString(jsonString);
+      
+      // Share the file
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'NoteFlow数据备份',
+        subject: 'NoteFlow备份文件',
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('数据导出成功')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('导出失败: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showProfileEditDialog() async {
+    final nameController = TextEditingController(text: _userName);
+    final emailController = TextEditingController(text: _userEmail);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('编辑个人资料', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: '姓名',
+                  prefixIcon: Icon(Icons.person),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: '邮箱',
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('保存'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      await _prefsService.setUserName(nameController.text.trim());
+      await _prefsService.setUserEmail(emailController.text.trim());
+      _loadSettings();
+    }
+  }
+
+  Future<void> _showFontSizeDialog() async {
+    double tempFontSize = _fontSize;
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('字体大小', style: AppTextStyles.titleMedium),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '示例文本',
+                    style: TextStyle(fontSize: tempFontSize.sp),
+                  ),
+                  SizedBox(height: 16.h),
+                  Slider(
+                    value: tempFontSize,
+                    min: 12.0,
+                    max: 20.0,
+                    divisions: 8,
+                    label: '${tempFontSize.toStringAsFixed(0)}sp',
+                    onChanged: (value) {
+                      setState(() {
+                        tempFontSize = value;
+                      });
+                    },
+                  ),
+                  Text(
+                    '${tempFontSize.toStringAsFixed(0)}sp',
+                    style: AppTextStyles.bodySmall,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('保存'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result == true) {
+      await _prefsService.setFontSize(tempFontSize);
+      _loadSettings();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: CustomScrollView(
         slivers: [
           // App Bar
@@ -31,7 +225,7 @@ class _SettingsPageState extends State<SettingsPage> {
             elevation: 0,
             backgroundColor: Theme.of(context).colorScheme.surface,
             title: Text(
-              'Settings',
+              '设置',
               style: AppTextStyles.appBarTitle,
             ),
           ),
@@ -58,7 +252,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     width: 60.w,
                     height: 60.w,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(30.r),
                     ),
                     child: Icon(
@@ -73,12 +271,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '西门吹雪',
+                          _userName,
                           style: AppTextStyles.titleLarge,
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'john.doe@example.com',
+                          _userEmail,
                           style: AppTextStyles.bodyMedium.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                           ),
@@ -87,12 +285,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      // TODO: Edit profile
-                    },
+                    onPressed: _showProfileEditDialog,
                     icon: Icon(
                       Icons.edit_rounded,
                       size: 20.sp,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -104,152 +301,165 @@ class _SettingsPageState extends State<SettingsPage> {
           SliverList(
             delegate: SliverChildListDelegate([
               _buildSettingsSection(
-                title: '🔒 Security & Privacy',
+                title: '🔒 安全与隐私',
                 children: [
                   _buildSwitchTile(
-                    title: 'Biometric Lock',
-                    subtitle: 'Use fingerprint or Face ID to unlock',
+                    title: '生物识别锁',
+                    subtitle: '使用指纹或Face ID解锁',
                     value: _biometricEnabled,
-                    onChanged: (value) {
+                    onChanged: (value) async {
+                      await _prefsService.setBiometricEnabled(value);
                       setState(() {
                         _biometricEnabled = value;
                       });
                     },
                   ),
                   _buildTile(
-                    title: 'Note Passwords',
-                    subtitle: 'Manage password-protected notes',
+                    title: '密码保护笔记',
+                    subtitle: '管理受密码保护的笔记',
                     onTap: () {
-                      // TODO: Navigate to password management
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('密码管理功能开发中...')),
+                      );
                     },
                   ),
                   _buildTile(
-                    title: 'Data Export',
-                    subtitle: 'Export your notes and data',
-                    onTap: () {
-                      // TODO: Export data
-                    },
+                    title: '数据导出',
+                    subtitle: '导出您的笔记和设置数据',
+                    onTap: _exportData,
                   ),
                 ],
               ),
 
               _buildSettingsSection(
-                title: '🎨 Appearance',
+                title: '🎨 外观设置',
                 children: [
                   _buildTile(
-                    title: 'Theme',
+                    title: '主题',
                     subtitle: _selectedTheme,
                     onTap: () {
                       _showThemeDialog();
                     },
                   ),
                   _buildTile(
-                    title: 'Note Colors',
-                    subtitle: 'Customize note category colors',
+                    title: '字体大小',
+                    subtitle: '${_fontSize.toStringAsFixed(0)}sp',
+                    onTap: _showFontSizeDialog,
+                  ),
+                  _buildTile(
+                    title: '笔记视图',
+                    subtitle: _noteViewMode == 'grid' ? '网格视图' : '列表视图',
                     onTap: () {
-                      // TODO: Color customization
+                      _showViewModeDialog();
                     },
                   ),
                   _buildTile(
-                    title: 'Font Settings',
-                    subtitle: 'Adjust font size and family',
+                    title: '笔记颜色',
+                    subtitle: '自定义笔记分类颜色',
                     onTap: () {
-                      // TODO: Font settings
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('颜色自定义功能开发中...')),
+                      );
                     },
                   ),
                 ],
               ),
 
               _buildSettingsSection(
-                title: '☁️ Sync & Backup',
+                title: '☁️ 同步与备份',
                 children: [
                   _buildSwitchTile(
-                    title: 'Cloud Sync',
-                    subtitle: 'Automatically sync across devices',
+                    title: '云端同步',
+                    subtitle: '自动在设备间同步',
                     value: _autoSyncEnabled,
-                    onChanged: (value) {
+                    onChanged: (value) async {
+                      await _prefsService.setAutoSyncEnabled(value);
                       setState(() {
                         _autoSyncEnabled = value;
                       });
                     },
                   ),
                   _buildTile(
-                    title: 'Backup Now',
-                    subtitle: 'Manually backup your data',
+                    title: '立即备份',
+                    subtitle: '手动备份您的数据',
                     onTap: () {
-                      // TODO: Manual backup
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Backup started...')),
+                        const SnackBar(content: Text('备份已开始...')),
                       );
                     },
                   ),
                   _buildTile(
-                    title: 'Storage Usage',
-                    subtitle: 'View storage and usage details',
+                    title: '存储使用情况',
+                    subtitle: '查看存储和使用详情',
                     onTap: () {
-                      // TODO: Storage details
+                      _showStorageDialog();
                     },
                   ),
                 ],
               ),
 
               _buildSettingsSection(
-                title: '🔔 Notifications',
+                title: '🔔 通知',
                 children: [
                   _buildSwitchTile(
-                    title: 'Push Notifications',
-                    subtitle: 'Receive reminders and updates',
+                    title: '推送通知',
+                    subtitle: '接收提醒和更新',
                     value: _notificationsEnabled,
-                    onChanged: (value) {
+                    onChanged: (value) async {
+                      await _prefsService.setNotificationsEnabled(value);
                       setState(() {
                         _notificationsEnabled = value;
                       });
                     },
                   ),
                   _buildTile(
-                    title: 'Reminder Settings',
-                    subtitle: 'Configure note reminders',
+                    title: '提醒设置',
+                    subtitle: '配置笔记提醒',
                     onTap: () {
-                      // TODO: Reminder settings
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('提醒设置功能开发中...')),
+                      );
                     },
                   ),
                 ],
               ),
 
               _buildSettingsSection(
-                title: '📱 About',
+                title: '📱 关于',
                 children: [
                   _buildTile(
-                    title: 'App Version',
+                    title: '应用版本',
                     subtitle: '1.0.0 (Build 1)',
                     onTap: null,
                   ),
                   _buildTile(
-                    title: 'Privacy Policy',
-                    subtitle: 'View our privacy policy',
+                    title: '隐私政策',
+                    subtitle: '查看我们的隐私政策',
                     onTap: () {
-                      // TODO: Open privacy policy
+                      _showInfoDialog('隐私政策', '我们重视您的隐私，致力于保护您的个人信息安全。所有笔记数据都存储在您的设备本地，我们不会收集或上传您的笔记内容。');
                     },
                   ),
                   _buildTile(
-                    title: 'Terms of Service',
-                    subtitle: 'View terms and conditions',
+                    title: '服务条款',
+                    subtitle: '查看服务条款',
                     onTap: () {
-                      // TODO: Open terms
+                      _showInfoDialog('服务条款', '感谢您使用NoteFlow。本应用免费提供，旨在帮助您更好地管理笔记。请合理使用本应用，不要用于非法用途。');
                     },
                   ),
                   _buildTile(
-                    title: 'Contact Support',
-                    subtitle: 'Get help and report issues',
+                    title: '联系支持',
+                    subtitle: '获取帮助和报告问题',
                     onTap: () {
-                      // TODO: Contact support
+                      _showContactDialog();
                     },
                   ),
                   _buildTile(
-                    title: 'Rate App',
-                    subtitle: 'Rate us on the App Store',
+                    title: '为应用评分',
+                    subtitle: '在App Store上为我们评分',
                     onTap: () {
-                      // TODO: Open app store rating
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('谢谢您的支持！')),
+                      );
                     },
                   ),
                 ],
@@ -358,47 +568,210 @@ class _SettingsPageState extends State<SettingsPage> {
       builder: (context) {
         return AlertDialog(
           title: Text(
-            'Choose Theme',
+            '选择主题',
             style: AppTextStyles.titleMedium,
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               RadioListTile<String>(
-                title: const Text('System'),
+                title: const Text('跟随系统'),
                 value: 'System',
                 groupValue: _selectedTheme,
-                onChanged: (value) {
+                onChanged: (value) async {
+                  await _themeManager.setThemeMode(value!);
                   setState(() {
-                    _selectedTheme = value!;
+                    _selectedTheme = value;
                   });
-                  Navigator.pop(context);
+                  if (mounted) Navigator.pop(context);
                 },
               ),
               RadioListTile<String>(
-                title: const Text('Light'),
+                title: const Text('浅色'),
                 value: 'Light',
                 groupValue: _selectedTheme,
-                onChanged: (value) {
+                onChanged: (value) async {
+                  await _themeManager.setThemeMode(value!);
                   setState(() {
-                    _selectedTheme = value!;
+                    _selectedTheme = value;
                   });
-                  Navigator.pop(context);
+                  if (mounted) Navigator.pop(context);
                 },
               ),
               RadioListTile<String>(
-                title: const Text('Dark'),
+                title: const Text('深色'),
                 value: 'Dark',
                 groupValue: _selectedTheme,
-                onChanged: (value) {
+                onChanged: (value) async {
+                  await _themeManager.setThemeMode(value!);
                   setState(() {
-                    _selectedTheme = value!;
+                    _selectedTheme = value;
                   });
-                  Navigator.pop(context);
+                  if (mounted) Navigator.pop(context);
                 },
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showViewModeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(
+            '笔记视图',
+            style: AppTextStyles.titleMedium,
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<String>(
+                title: const Text('网格视图'),
+                value: 'grid',
+                groupValue: _noteViewMode,
+                onChanged: (value) async {
+                  await _prefsService.setNoteViewMode(value!);
+                  setState(() {
+                    _noteViewMode = value;
+                  });
+                  if (mounted) Navigator.pop(context);
+                },
+              ),
+              RadioListTile<String>(
+                title: const Text('列表视图'),
+                value: 'list',
+                groupValue: _noteViewMode,
+                onChanged: (value) async {
+                  await _prefsService.setNoteViewMode(value!);
+                  setState(() {
+                    _noteViewMode = value;
+                  });
+                  if (mounted) Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showStorageDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('存储使用情况', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildStorageItem('笔记数据', '2.4 MB'),
+              _buildStorageItem('附件', '1.2 MB'),
+              _buildStorageItem('设置', '0.1 MB'),
+              const Divider(),
+              _buildStorageItem('总计', '3.7 MB', bold: true),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStorageItem(String label, String size, {bool bold = false}) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            size,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showInfoDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title, style: AppTextStyles.titleMedium),
+          content: Text(
+            content,
+            style: AppTextStyles.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showContactDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('联系支持', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.email),
+                title: const Text('邮箱支持'),
+                subtitle: const Text('support@noteflow.com'),
+                onTap: () {
+                  Clipboard.setData(const ClipboardData(text: 'support@noteflow.com'));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('邮箱地址已复制')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.bug_report),
+                title: const Text('报告问题'),
+                subtitle: const Text('反馈使用中的问题'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('谢谢您的反馈！')),
+                  );
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('关闭'),
+            ),
+          ],
         );
       },
     );

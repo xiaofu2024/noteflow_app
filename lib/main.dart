@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:get_it/get_it.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
 import 'core/services/dependency_injection.dart';
 import 'core/services/ai_service.dart';
+import 'core/services/theme_manager.dart';
 import 'presentation/pages/splash_page.dart';
 
 void main() async {
@@ -15,6 +17,9 @@ void main() async {
   
   // Initialize dependencies
   await initializeDependencies();
+  
+  // Get theme manager from DI
+  final themeManager = GetIt.instance<ThemeManager>();
   
   // Initialize AI services
   await AIService().initialize();
@@ -32,11 +37,16 @@ void main() async {
     ),
   );
   
-  runApp(const NoteFlowApp());
+  runApp(NoteFlowApp(themeManager: themeManager));
 }
 
 class NoteFlowApp extends StatelessWidget {
-  const NoteFlowApp({super.key});
+  final ThemeManager themeManager;
+  
+  const NoteFlowApp({
+    super.key,
+    required this.themeManager,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,47 +55,52 @@ class NoteFlowApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
-          title: AppConstants.appName,
-          debugShowCheckedModeBanner: false,
+        return AnimatedBuilder(
+          animation: themeManager,
+          builder: (context, child) {
+            return MaterialApp(
+              title: AppConstants.appName,
+              debugShowCheckedModeBanner: false,
+              
+              // Theme Configuration
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeManager.themeMode,
           
-          // Theme Configuration
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.system,
-          
-          // Localization Configuration
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en', 'US'),
-            Locale('zh', 'CN'),
-            Locale('es', 'ES'),
-            Locale('fr', 'FR'),
-            Locale('de', 'DE'),
-            Locale('ja', 'JP'),
-            Locale('ko', 'KR'),
-          ],
-          
-          // Smart Dialog Configuration
-          navigatorObservers: [FlutterSmartDialog.observer],
-          builder: FlutterSmartDialog.init(
-            builder: (context, child) => MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: const TextScaler.linear(1.0),
+              // Localization Configuration
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en', 'US'),
+                Locale('zh', 'CN'),
+                Locale('es', 'ES'),
+                Locale('fr', 'FR'),
+                Locale('de', 'DE'),
+                Locale('ja', 'JP'),
+                Locale('ko', 'KR'),
+              ],
+              
+              // Smart Dialog Configuration
+              navigatorObservers: [FlutterSmartDialog.observer],
+              builder: FlutterSmartDialog.init(
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(context).copyWith(
+                    textScaler: const TextScaler.linear(1.0),
+                  ),
+                  child: child!,
+                ),
               ),
-              child: child!,
-            ),
-          ),
-          
-          // Initial Route
-          home: const SplashPage(),
-          
-          // Route Configuration
-          onGenerateRoute: _generateRoute,
+              
+              // Initial Route
+              home: const SplashPage(),
+              
+              // Route Configuration
+              onGenerateRoute: _generateRoute,
+            );
+          },
         );
       },
     );

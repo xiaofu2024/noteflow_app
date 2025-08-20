@@ -33,6 +33,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<ToggleNotePinEvent>(_onToggleNotePin);
     on<ToggleNoteFavoriteEvent>(_onToggleNoteFavorite);
     on<RefreshNotesEvent>(_onRefreshNotes);
+    on<LoadNotesByDateEvent>(_onLoadNotesByDate);
   }
 
   Future<void> _onLoadNotes(LoadNotesEvent event, Emitter<NotesState> emit) async {
@@ -172,5 +173,33 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
   Future<void> _onRefreshNotes(RefreshNotesEvent event, Emitter<NotesState> emit) async {
     add(LoadNotesEvent(userId: event.userId));
+  }
+
+  Future<void> _onLoadNotesByDate(LoadNotesByDateEvent event, Emitter<NotesState> emit) async {
+    emit(NotesLoading());
+
+    final result = await getNotesUseCase(GetNotesParams(
+      userId: event.userId,
+    ));
+
+    result.fold(
+      (failure) => emit(NotesError(failure.message)),
+      (notes) {
+        // Filter notes by the selected date
+        final startOfDay = DateTime(event.date.year, event.date.month, event.date.day);
+        final endOfDay = startOfDay.add(const Duration(days: 1));
+        
+        final notesForDate = notes.where((note) {
+          final createdAt = note.createdAt ?? DateTime.now();
+          return createdAt.isAfter(startOfDay) && createdAt.isBefore(endOfDay);
+        }).toList();
+
+        emit(NotesLoaded(
+          notes: notesForDate,
+          pinnedNotes: notesForDate.where((note) => note.isPinned).toList(),
+          recentNotes: notesForDate.where((note) => !note.isPinned).toList(),
+        ));
+      },
+    );
   }
 }
