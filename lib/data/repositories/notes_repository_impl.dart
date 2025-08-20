@@ -4,7 +4,6 @@ import '../../core/errors/failures.dart';
 import '../../domain/entities/note_entity.dart';
 import '../../domain/repositories/notes_repository.dart';
 import '../datasources/local/notes_local_data_source.dart';
-import '../models/note_model.dart';
 
 class NotesRepositoryImpl implements NotesRepository {
   final NotesLocalDataSource localDataSource;
@@ -24,7 +23,7 @@ class NotesRepositoryImpl implements NotesRepository {
     int? offset,
   }) async {
     try {
-      final noteModels = await localDataSource.getNotes(
+      final notes = await localDataSource.getNotes(
         userId: userId,
         isPinned: isPinned,
         tags: tags,
@@ -32,7 +31,6 @@ class NotesRepositoryImpl implements NotesRepository {
         offset: offset,
       );
       
-      final notes = noteModels.map((model) => model.toEntity()).toList();
       return Right(notes);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));
@@ -44,8 +42,8 @@ class NotesRepositoryImpl implements NotesRepository {
   @override
   Future<Either<Failure, NoteEntity?>> getNoteById(String id) async {
     try {
-      final noteModel = await localDataSource.getNoteById(id);
-      return Right(noteModel?.toEntity());
+      final note = await localDataSource.getNoteById(id);
+      return Right(note);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));
     } catch (e) {
@@ -56,8 +54,7 @@ class NotesRepositoryImpl implements NotesRepository {
   @override
   Future<Either<Failure, String>> createNote(NoteEntity note) async {
     try {
-      final noteModel = NoteModel.fromEntity(note);
-      final noteId = await localDataSource.createNote(noteModel);
+      final noteId = await localDataSource.createNote(note);
       return Right(noteId);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));
@@ -69,8 +66,7 @@ class NotesRepositoryImpl implements NotesRepository {
   @override
   Future<Either<Failure, void>> updateNote(NoteEntity note) async {
     try {
-      final noteModel = NoteModel.fromEntity(note);
-      await localDataSource.updateNote(noteModel);
+      await localDataSource.updateNote(note);
       return const Right(null);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));
@@ -97,8 +93,7 @@ class NotesRepositoryImpl implements NotesRepository {
     String? userId,
   }) async {
     try {
-      final noteModels = await localDataSource.searchNotes(query, userId: userId);
-      final notes = noteModels.map((model) => model.toEntity()).toList();
+      final notes = await localDataSource.searchNotes(query, userId: userId);
       return Right(notes);
     } on CacheException catch (e) {
       return Left(CacheFailure(e.message));

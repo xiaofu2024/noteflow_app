@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 class NoteEntity extends Equatable {
@@ -5,15 +6,15 @@ class NoteEntity extends Equatable {
   final String title;
   final String content;
   final List<String> tags;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final bool isPinned;
-  final bool isEncrypted;
+  final bool? isEncrypted;
   final String? password;
   final int? color;
   final String userId;
-  final bool isFavorite;
-  final List<String> attachments;
+  final bool? isFavorite;
+  final List<String>? attachments;
   final Map<String, dynamic>? metadata;
 
   const NoteEntity({
@@ -21,15 +22,15 @@ class NoteEntity extends Equatable {
     required this.title,
     required this.content,
     required this.tags,
-    required this.createdAt,
-    required this.updatedAt,
+     this.createdAt,
+     this.updatedAt,
     required this.isPinned,
-    required this.isEncrypted,
+     this.isEncrypted,
     this.password,
     this.color,
     required this.userId,
-    required this.isFavorite,
-    required this.attachments,
+    this.isFavorite,
+     this.attachments,
     this.metadata,
   });
 
@@ -97,8 +98,94 @@ class NoteEntity extends Equatable {
   
   bool get isEmpty => title.trim().isEmpty && content.trim().isEmpty;
   
-  Duration get age => DateTime.now().difference(createdAt);
+  Duration get age => DateTime.now().difference(createdAt ?? DateTime.now());
   
   bool get isRecentlyModified => 
-      DateTime.now().difference(updatedAt).inHours < 24;
+      updatedAt != null && DateTime.now().difference(updatedAt!).inHours < 24;
+
+  // JSON Serialization Methods
+  factory NoteEntity.fromJson(Map<String, dynamic> json) {
+    return NoteEntity(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      content: json['content'] as String,
+      tags: List<String>.from(json['tags'] as List),
+      createdAt: json['created_at'] != null 
+          ? DateTime.fromMillisecondsSinceEpoch(json['created_at'] as int)
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int)
+          : DateTime.now(),
+      isPinned: json['is_pinned'] as bool? ?? false,
+      isEncrypted: json['is_encrypted'] as bool? ?? false,
+      password: json['password'] as String?,
+      color: json['color'] as int?,
+      userId: json['user_id'] as String,
+      isFavorite: json['is_favorite'] as bool? ?? false,
+      attachments: json['attachments'] != null
+          ? List<String>.from(json['attachments'] as List)
+          : [],
+      metadata: json['metadata'] as Map<String, dynamic>?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'tags': tags,
+      'created_at': createdAt?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
+      'updated_at': updatedAt?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
+      'is_pinned': isPinned,
+      'is_encrypted': isEncrypted ?? false,
+      'password': password,
+      'color': color,
+      'user_id': userId,
+      'is_favorite': isFavorite ?? false,
+      'attachments': attachments ?? [],
+      'metadata': metadata,
+    };
+  }
+
+  // Database-compatible JSON conversion
+  factory NoteEntity.fromDatabaseJson(Map<String, dynamic> json) {
+    return NoteEntity(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      content: json['content'] as String,
+      tags: List<String>.from(jsonDecode(json['tags'] as String? ?? '[]')),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(json['created_at'] as int),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(json['updated_at'] as int),
+      isPinned: (json['is_pinned'] as int) == 1,
+      isEncrypted: (json['is_encrypted'] as int? ?? 0) == 1,
+      password: json['password'] as String?,
+      color: json['color'] as int?,
+      userId: json['user_id'] as String,
+      isFavorite: (json['is_favorite'] as int? ?? 0) == 1,
+      attachments: List<String>.from(jsonDecode(json['attachments'] as String? ?? '[]')),
+      metadata: json['metadata'] != null 
+          ? Map<String, dynamic>.from(jsonDecode(json['metadata'] as String))
+          : null,
+    );
+  }
+
+  Map<String, Object?> toDatabaseJson() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'tags': jsonEncode(tags),
+      'created_at': createdAt?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
+      'updated_at': updatedAt?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch,
+      'is_pinned': isPinned ? 1 : 0,
+      'is_encrypted': (isEncrypted ?? false) ? 1 : 0,
+      'password': password,
+      'color': color,
+      'user_id': userId,
+      'is_favorite': (isFavorite ?? false) ? 1 : 0,
+      'attachments': jsonEncode(attachments ?? []),
+      'metadata': metadata != null ? jsonEncode(metadata) : null,
+    };
+  }
 }

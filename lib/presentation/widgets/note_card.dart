@@ -128,7 +128,7 @@ class NoteCard extends StatelessWidget {
               if (!isCompact) ...[
                 SizedBox(width: 8.w),
                 Text(
-                  _formatDate(note.createdAt),
+                  _formatDate(note.createdAt ?? DateTime.now()),
                   style: AppTextStyles.labelSmall.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   ),
@@ -228,7 +228,7 @@ class NoteCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      _formatDate(note.createdAt),
+                      _formatDate(note.createdAt ?? DateTime.now()),
                       style: AppTextStyles.labelSmall.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                       ),

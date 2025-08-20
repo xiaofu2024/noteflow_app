@@ -1,21 +1,21 @@
 import 'dart:convert';
 import '../../../core/errors/exceptions.dart';
-import '../../models/note_model.dart';
+import '../../../domain/entities/note_entity.dart';
 import 'database_helper.dart';
 
 abstract class NotesLocalDataSource {
-  Future<List<NoteModel>> getNotes({
+  Future<List<NoteEntity>> getNotes({
     String? userId,
     bool? isPinned,
     List<String>? tags,
     int? limit,
     int? offset,
   });
-  Future<NoteModel?> getNoteById(String id);
-  Future<String> createNote(NoteModel note);
-  Future<void> updateNote(NoteModel note);
+  Future<NoteEntity?> getNoteById(String id);
+  Future<String> createNote(NoteEntity note);
+  Future<void> updateNote(NoteEntity note);
   Future<void> deleteNote(String id);
-  Future<List<NoteModel>> searchNotes(String query, {String? userId});
+  Future<List<NoteEntity>> searchNotes(String query, {String? userId});
   Future<void> clearAllNotes();
 }
 
@@ -25,7 +25,7 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
   NotesLocalDataSourceImpl(this._databaseHelper);
 
   @override
-  Future<List<NoteModel>> getNotes({
+  Future<List<NoteEntity>> getNotes({
     String? userId,
     bool? isPinned,
     List<String>? tags,
@@ -72,14 +72,14 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
         offset: offset,
       );
 
-      return result.map((json) => _mapToNoteModel(json)).toList();
+      return result.map((json) => NoteEntity.fromDatabaseJson(json)).toList();
     } catch (e) {
       throw CacheException('Failed to get notes: $e');
     }
   }
 
   @override
-  Future<NoteModel?> getNoteById(String id) async {
+  Future<NoteEntity?> getNoteById(String id) async {
     try {
       final result = await _databaseHelper.query(
         'notes',
@@ -89,16 +89,16 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
       );
 
       if (result.isEmpty) return null;
-      return _mapToNoteModel(result.first);
+      return NoteEntity.fromDatabaseJson(result.first);
     } catch (e) {
       throw CacheException('Failed to get note by id: $e');
     }
   }
 
   @override
-  Future<String> createNote(NoteModel note) async {
+  Future<String> createNote(NoteEntity note) async {
     try {
-      await _databaseHelper.insert('notes', _noteModelToMap(note));
+      await _databaseHelper.insert('notes', note.toDatabaseJson());
       return note.id;
     } catch (e) {
       throw CacheException('Failed to create note: $e');
@@ -106,11 +106,11 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
   }
 
   @override
-  Future<void> updateNote(NoteModel note) async {
+  Future<void> updateNote(NoteEntity note) async {
     try {
       final rowsAffected = await _databaseHelper.update(
         'notes',
-        _noteModelToMap(note),
+        note.toDatabaseJson(),
         where: 'id = ?',
         whereArgs: [note.id],
       );
@@ -141,7 +141,7 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
   }
 
   @override
-  Future<List<NoteModel>> searchNotes(String query, {String? userId}) async {
+  Future<List<NoteEntity>> searchNotes(String query, {String? userId}) async {
     try {
       String where = '(title LIKE ? OR content LIKE ?)';
       List<Object?> whereArgs = ['%$query%', '%$query%'];
@@ -158,7 +158,7 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
         orderBy: 'updated_at DESC',
       );
 
-      return result.map((json) => _mapToNoteModel(json)).toList();
+      return result.map((json) => NoteEntity.fromDatabaseJson(json)).toList();
     } catch (e) {
       throw CacheException('Failed to search notes: $e');
     }
@@ -173,44 +173,4 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
     }
   }
 
-  // Helper methods for mapping between NoteModel and database Map
-  Map<String, Object?> _noteModelToMap(NoteModel note) {
-    return {
-      'id': note.id,
-      'title': note.title,
-      'content': note.content,
-      'tags': jsonEncode(note.tags),
-      'created_at': note.createdAt.millisecondsSinceEpoch,
-      'updated_at': note.updatedAt.millisecondsSinceEpoch,
-      'is_pinned': note.isPinned ? 1 : 0,
-      'is_encrypted': note.isEncrypted ? 1 : 0,
-      'password': note.password,
-      'color': note.color,
-      'user_id': note.userId,
-      'is_favorite': note.isFavorite ? 1 : 0,
-      'attachments': jsonEncode(note.attachments),
-      'metadata': note.metadata != null ? jsonEncode(note.metadata) : null,
-    };
-  }
-
-  NoteModel _mapToNoteModel(Map<String, dynamic> map) {
-    return NoteModel(
-      id: map['id'] as String,
-      title: map['title'] as String,
-      content: map['content'] as String,
-      tags: List<String>.from(jsonDecode(map['tags'] as String)),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(map['updated_at'] as int),
-      isPinned: (map['is_pinned'] as int) == 1,
-      isEncrypted: (map['is_encrypted'] as int) == 1,
-      password: map['password'] as String?,
-      color: map['color'] as int?,
-      userId: map['user_id'] as String,
-      isFavorite: (map['is_favorite'] as int) == 1,
-      attachments: List<String>.from(jsonDecode(map['attachments'] as String)),
-      metadata: map['metadata'] != null 
-          ? Map<String, dynamic>.from(jsonDecode(map['metadata'] as String))
-          : null,
-    );
-  }
 }

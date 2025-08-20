@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:noteflow_app/core/constants/app_constants.dart';
 
 import '../../../core/services/ai_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../domain/entities/note_entity.dart';
 import '../editor/note_editor_page.dart';
 
 class OCRScannerPage extends StatefulWidget {
@@ -95,6 +97,11 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
 
   void _createNoteFromText() {
     if (_recognizedText != null && _recognizedText!.isNotEmpty) {
+      var noteContent = _recognizedText!.trim();
+      var note = NoteEntity(
+        title: 'OCR识别笔记',
+        content: noteContent, id: '0', tags: [], isPinned: false,  userId: AppConstants.userIdKey,
+      );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => const NoteEditorPageWrapper(
