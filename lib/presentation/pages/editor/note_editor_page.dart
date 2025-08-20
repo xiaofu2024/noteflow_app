@@ -141,6 +141,9 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       );
       
       notesBloc.add(CreateNoteEvent(newNote));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('添加成功！')),
+      );
     } else {
       final updatedNote = widget.note!.copyWith(
         title: title.isEmpty ? '无标题' : title,
@@ -152,6 +155,9 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       );
       
       notesBloc.add(UpdateNoteEvent(updatedNote));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('更新成功！')),
+      );
     }
 
     Navigator.of(context).pop();

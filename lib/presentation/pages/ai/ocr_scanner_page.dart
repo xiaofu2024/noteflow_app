@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:noteflow_app/core/constants/app_constants.dart';
+import 'package:uuid/uuid.dart';
 
 import '../../../core/services/ai_service.dart';
 import '../../../core/theme/app_colors.dart';
@@ -97,27 +99,32 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
 
   void _createNoteFromText() {
     if (_recognizedText != null && _recognizedText!.isNotEmpty) {
-      var noteContent = _recognizedText!.trim();
-      var note = NoteEntity(
+      final noteContent = _recognizedText!.trim();
+      final note = NoteEntity(
+        id: const Uuid().v4(),
         title: 'OCR识别笔记',
-        content: noteContent, id: '0', tags: [], isPinned: false,  userId: AppConstants.userIdKey,
+        content: noteContent,
+        tags: [],
+        isPinned: false,
+        userId: AppConstants.userIdKey,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
+      
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const NoteEditorPageWrapper(
+          builder: (context) => NoteEditorPageWrapper(
+            note: note,
             isNewNote: true,
           ),
         ),
       );
-      
-      // TODO: Pass the recognized text to the editor
-      // This would need to be implemented in the note editor
     }
   }
 
   void _copyToClipboard() {
-    if (_recognizedText != null) {
-      // TODO: Implement clipboard copy
+    if (_recognizedText != null && _recognizedText!.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: _recognizedText!.trim()));
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('文本已复制到剪贴板')),
       );

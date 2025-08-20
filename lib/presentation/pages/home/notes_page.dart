@@ -309,7 +309,7 @@ class _NotesPageState extends State<NotesPage> {
         foregroundColor: Colors.white,
         icon: Icon(Icons.add_rounded, size: 24.sp),
         label: Text(
-          'New Note',
+          '',
           style: AppTextStyles.buttonText.copyWith(color: Colors.white),
         ),
       ),
