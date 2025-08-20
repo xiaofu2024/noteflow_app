@@ -73,7 +73,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'John Doe',
+                          '西门吹雪',
                           style: AppTextStyles.titleLarge,
                         ),
                         SizedBox(height: 4.h),

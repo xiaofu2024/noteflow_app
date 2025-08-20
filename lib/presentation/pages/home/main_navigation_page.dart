@@ -23,22 +23,22 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     NavigationTab(
       icon: Icons.edit_note_rounded,
       activeIcon: Icons.edit_note_rounded,
-      label: 'Notes',
+      label: '笔记',
     ),
     NavigationTab(
       icon: Icons.calendar_today_outlined,
       activeIcon: Icons.calendar_today,
-      label: 'Calendar',
+      label: '日历',
     ),
     NavigationTab(
       icon: Icons.search_outlined,
       activeIcon: Icons.search,
-      label: 'Search',
+      label: '搜索',
     ),
     NavigationTab(
       icon: Icons.settings_outlined,
       activeIcon: Icons.settings,
-      label: 'Settings',
+      label: '设置',
     ),
   ];
 

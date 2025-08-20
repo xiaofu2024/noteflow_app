@@ -40,10 +40,10 @@ class _SearchPageState extends State<SearchPage> {
 
   // Mock search history
   final List<String> _recentSearches = [
-    'meeting notes',
-    'project ideas',
-    'travel plans',
-    'recipe',
+    '会议记录',
+    '项目想法',
+    '旅行计划',
+    '收据',
   ];
 
   @override
