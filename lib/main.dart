@@ -11,6 +11,7 @@ import 'core/services/dependency_injection.dart';
 import 'core/services/ai_service.dart';
 import 'core/services/theme_manager.dart';
 import 'presentation/pages/splash_page.dart';
+import 'package:noteflow_app/generated/l10n.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +58,7 @@ class NoteFlowApp extends StatelessWidget {
       builder: (context, child) {
         return AnimatedBuilder(
           animation: themeManager,
+
           builder: (context, child) {
             return MaterialApp(
               title: AppConstants.appName,
@@ -72,17 +74,9 @@ class NoteFlowApp extends StatelessWidget {
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
+                S.delegate,
               ],
-              supportedLocales: const [
-                Locale('en', 'US'),
-                Locale('zh', 'CN'),
-                Locale('es', 'ES'),
-                Locale('fr', 'FR'),
-                Locale('de', 'DE'),
-                Locale('ja', 'JP'),
-                Locale('ko', 'KR'),
-              ],
-              
+
               // Smart Dialog Configuration
               navigatorObservers: [FlutterSmartDialog.observer],
               builder: FlutterSmartDialog.init(

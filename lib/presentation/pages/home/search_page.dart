@@ -12,6 +12,7 @@ import '../../widgets/note_card.dart';
 import '../editor/note_editor_page.dart';
 import '../ai/ocr_scanner_page.dart';
 import '../ai/voice_note_page.dart';
+import 'package:noteflow_app/generated/l10n.dart' as localization;
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -163,19 +164,19 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       _buildQuickActionButton(
                         icon: Icons.document_scanner_rounded,
-                        label: 'OCR\nScan',
+                        label: localization.S.of(context).ocrScan,
                         color: AppColors.primary,
                         onTap: _openOCR,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.mic_rounded,
-                        label: 'Voice\nNote',
+                        label: localization.S.of(context).voiceNote,
                         color: AppColors.secondary,
                         onTap: _openVoiceNote,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.auto_awesome_rounded,
-                        label: 'AI\nHelp',
+                        label: localization.S.of(context).aiHelp,
                         color: AppColors.accent,
                         onTap: _openAIHelp,
                       ),
