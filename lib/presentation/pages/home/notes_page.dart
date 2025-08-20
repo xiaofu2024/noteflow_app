@@ -183,7 +183,7 @@ class _NotesPageState extends State<NotesPage> {
                           ),
                           SizedBox(width: 8.w),
                           Text(
-                            'Pinned',
+                            '置顶',
                             style: AppTextStyles.titleMedium.copyWith(
                               color: AppColors.primary,
                             ),
@@ -231,7 +231,7 @@ class _NotesPageState extends State<NotesPage> {
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
                     child: Text(
-                      'Recent Notes',
+                      '最近笔记',
                       style: AppTextStyles.titleMedium,
                     ),
                   ),
