@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../domain/entities/note_entity.dart';
+import '../../bloc/notes/notes_bloc.dart';
+import '../../widgets/note_card.dart';
+import '../editor/note_editor_page.dart';
+import '../ai/ocr_scanner_page.dart';
+import '../ai/voice_note_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
+}
+
+class SearchPageWrapper extends StatelessWidget {
+  const SearchPageWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => GetIt.instance<NotesBloc>(),
+      child: const SearchPage(),
+    );
+  }
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -37,7 +58,13 @@ class _SearchPageState extends State<SearchPage> {
       _searchQuery = query;
       _isSearching = query.isNotEmpty;
     });
-    // TODO: Implement actual search functionality
+    
+    if (query.trim().isNotEmpty) {
+      context.read<NotesBloc>().add(SearchNotesEvent(
+        query: query.trim(),
+        userId: 'user_1',
+      ));
+    }
   }
 
   void _clearSearch() {
@@ -49,23 +76,24 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _openOCR() {
-    // TODO: Open OCR scanner
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('OCR Scanner - TODO')),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const OCRScannerPage(),
+      ),
     );
   }
 
   void _openVoiceNote() {
-    // TODO: Open voice note recorder
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Voice Note - TODO')),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const VoiceNotePage(),
+      ),
     );
   }
 
   void _openAIHelp() {
-    // TODO: Open AI assistant
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('AI Help - TODO')),
+      const SnackBar(content: Text('AI助手功能即将推出...')),
     );
   }
 
@@ -159,7 +187,25 @@ class _SearchPageState extends State<SearchPage> {
             
             // Content
             Expanded(
-              child: _isSearching ? _buildSearchResults() : _buildDefaultContent(),
+              child: _isSearching 
+                  ? BlocBuilder<NotesBloc, NotesState>(
+                      builder: (context, state) {
+                        if (state is NotesSearching) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (state is NotesSearchResults) {
+                          return _buildSearchResults(state.results);
+                        } else if (state is NotesSearchEmpty) {
+                          return _buildEmptySearchState();
+                        } else if (state is NotesError) {
+                          return _buildErrorState(state.message);
+                        } else {
+                          return _buildDefaultContent();
+                        }
+                      },
+                    ) 
+                  : _buildDefaultContent(),
             ),
           ],
         ),
@@ -309,30 +355,106 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSearchResults() {
-    // TODO: Implement actual search results
+  Widget _buildSearchResults(List<NoteEntity> results) {
+    if (results.isEmpty) {
+      return _buildEmptySearchState();
+    }
+    
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Text(
+              'Found ${results.length} note${results.length == 1 ? '' : 's'}',
+              style: AppTextStyles.titleMedium,
+            ),
+          ),
+        ),
+        SliverPadding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          sliver: SliverMasonryGrid.count(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12.h,
+            crossAxisSpacing: 12.w,
+            childCount: results.length,
+            itemBuilder: (context, index) {
+              return NoteCard(
+                note: results[index],
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => NoteEditorPageWrapper(
+                        note: results[index],
+                        isNewNote: false,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: 100.h),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptySearchState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.search_rounded,
+            Icons.search_off_rounded,
             size: 64.sp,
             color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
           ),
           SizedBox(height: 16.h),
           Text(
-            'Searching for "$_searchQuery"',
+            'No notes found',
             style: AppTextStyles.titleMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           SizedBox(height: 8.h),
           Text(
-            'Search functionality coming soon...',
+            'Try different keywords or create a new note',
             style: AppTextStyles.bodyMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            size: 64.sp,
+            color: Colors.red,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'Search Error',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: Colors.red,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            message,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

@@ -72,7 +72,7 @@ class UserEntity extends Equatable {
 }
 
 class UserPreferences extends Equatable {
-  final ThemeMode themeMode;
+  final UserThemeMode themeMode;
   final String language;
   final bool biometricEnabled;
   final bool autoSyncEnabled;
@@ -97,7 +97,7 @@ class UserPreferences extends Equatable {
   });
 
   UserPreferences copyWith({
-    ThemeMode? themeMode,
+    UserThemeMode? themeMode,
     String? language,
     bool? biometricEnabled,
     bool? autoSyncEnabled,
@@ -123,7 +123,7 @@ class UserPreferences extends Equatable {
   }
 
   static const UserPreferences defaultPreferences = UserPreferences(
-    themeMode: ThemeMode.system,
+    themeMode: UserThemeMode.system,
     language: 'en',
     biometricEnabled: false,
     autoSyncEnabled: true,
@@ -150,7 +150,7 @@ class UserPreferences extends Equatable {
       ];
 }
 
-enum ThemeMode { light, dark, system }
+enum UserThemeMode { light, dark, system }
 
 class UserSubscription extends Equatable {
   final String id;

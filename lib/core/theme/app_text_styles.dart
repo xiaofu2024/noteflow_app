@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTextStyles {
+  // Base font family - using system fonts for better performance and reliability
+  static const String _fontFamily = "Helvetica"; // Use system default
+  
   // Display Text Styles
-  static TextStyle displayLarge = GoogleFonts.inter(
+  static const TextStyle displayLarge = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 57,
     fontWeight: FontWeight.w400,
     letterSpacing: -0.25,
     height: 1.12,
   );
   
-  static TextStyle displayMedium = GoogleFonts.inter(
+  static const TextStyle displayMedium = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 45,
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
     height: 1.16,
   );
   
-  static TextStyle displaySmall = GoogleFonts.inter(
+  static const TextStyle displaySmall = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 36,
     fontWeight: FontWeight.w400,
     letterSpacing: 0,
@@ -26,21 +31,24 @@ class AppTextStyles {
   );
   
   // Headline Text Styles
-  static TextStyle headlineLarge = GoogleFonts.inter(
+  static const TextStyle headlineLarge = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 32,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.25,
   );
   
-  static TextStyle headlineMedium = GoogleFonts.inter(
+  static const TextStyle headlineMedium = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 28,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.29,
   );
   
-  static TextStyle headlineSmall = GoogleFonts.inter(
+  static const TextStyle headlineSmall = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 24,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
@@ -48,21 +56,24 @@ class AppTextStyles {
   );
   
   // Title Text Styles
-  static TextStyle titleLarge = GoogleFonts.inter(
+  static const TextStyle titleLarge = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 22,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.27,
   );
   
-  static TextStyle titleMedium = GoogleFonts.inter(
+  static const TextStyle titleMedium = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.15,
     height: 1.50,
   );
   
-  static TextStyle titleSmall = GoogleFonts.inter(
+  static const TextStyle titleSmall = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
@@ -70,21 +81,24 @@ class AppTextStyles {
   );
   
   // Label Text Styles
-  static TextStyle labelLarge = GoogleFonts.inter(
+  static const TextStyle labelLarge = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.1,
     height: 1.43,
   );
   
-  static TextStyle labelMedium = GoogleFonts.inter(
+  static const TextStyle labelMedium = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
     height: 1.33,
   );
   
-  static TextStyle labelSmall = GoogleFonts.inter(
+  static const TextStyle labelSmall = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 11,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
@@ -92,21 +106,24 @@ class AppTextStyles {
   );
   
   // Body Text Styles
-  static TextStyle bodyLarge = GoogleFonts.inter(
+  static const TextStyle bodyLarge = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 16,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.15,
     height: 1.50,
   );
   
-  static TextStyle bodyMedium = GoogleFonts.inter(
+  static const TextStyle bodyMedium = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.25,
     height: 1.43,
   );
   
-  static TextStyle bodySmall = GoogleFonts.inter(
+  static const TextStyle bodySmall = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.4,
@@ -114,42 +131,48 @@ class AppTextStyles {
   );
   
   // Custom App-specific Text Styles
-  static TextStyle noteTitle = GoogleFonts.inter(
+  static const TextStyle noteTitle = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 18,
     fontWeight: FontWeight.w700,
     letterSpacing: 0,
     height: 1.33,
   );
   
-  static TextStyle notePreview = GoogleFonts.inter(
+  static const TextStyle notePreview = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w400,
     letterSpacing: 0.25,
     height: 1.43,
   );
   
-  static TextStyle tagText = GoogleFonts.inter(
+  static const TextStyle tagText = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.5,
     height: 1.33,
   );
   
-  static TextStyle buttonText = GoogleFonts.inter(
+  static const TextStyle buttonText = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
     height: 1.43,
   );
   
-  static TextStyle appBarTitle = GoogleFonts.inter(
+  static const TextStyle appBarTitle = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 20,
     fontWeight: FontWeight.w600,
     letterSpacing: 0,
     height: 1.20,
   );
   
-  static TextStyle tabLabel = GoogleFonts.inter(
+  static const TextStyle tabLabel = TextStyle(
+    fontFamily: _fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w500,
     letterSpacing: 0.1,

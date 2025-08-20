@@ -6,10 +6,18 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/dependency_injection.dart';
+import 'core/services/ai_service.dart';
 import 'presentation/pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize dependencies
+  await initializeDependencies();
+  
+  // Initialize AI services
+  await AIService().initialize();
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

@@ -3,10 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../pages/home/notes_page.dart'; // For MockNote - replace with actual entity
+import '../../domain/entities/note_entity.dart';
 
 class NoteCard extends StatelessWidget {
-  final MockNote note;
+  final NoteEntity note;
   final bool isCompact;
   final bool isListView;
   final VoidCallback? onTap;
@@ -28,10 +28,10 @@ class NoteCard extends StatelessWidget {
       onLongPress: onLongPress,
       child: Container(
         decoration: BoxDecoration(
-          color: note.color.withOpacity(0.15),
+          color: _getNoteColor().withOpacity(0.15),
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: note.color.withOpacity(0.3),
+            color: _getNoteColor().withOpacity(0.3),
             width: 1,
           ),
           boxShadow: [
@@ -111,13 +111,13 @@ class NoteCard extends StatelessWidget {
                         vertical: 4.h,
                       ),
                       decoration: BoxDecoration(
-                        color: note.color.withOpacity(0.3),
+                        color: _getNoteColor().withOpacity(0.3),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Text(
                         '#$tag',
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: note.color,
+                          color: _getNoteColor(),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -152,7 +152,7 @@ class NoteCard extends StatelessWidget {
             width: 4.w,
             height: 60.h,
             decoration: BoxDecoration(
-              color: note.color,
+              color: _getNoteColor(),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
@@ -213,13 +213,13 @@ class NoteCard extends StatelessWidget {
                               vertical: 2.h,
                             ),
                             decoration: BoxDecoration(
-                              color: note.color.withOpacity(0.2),
+                              color: _getNoteColor().withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8.r),
                             ),
                             child: Text(
                               '#$tag',
                               style: AppTextStyles.labelSmall.copyWith(
-                                color: note.color,
+                                color: _getNoteColor(),
                                 fontSize: 10.sp,
                               ),
                             ),
@@ -241,6 +241,16 @@ class NoteCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Color _getNoteColor() {
+    if (note.color != null) {
+      return Color(note.color!);
+    }
+    // Default colors based on color index or fallback
+    final colors = AppColors.noteCategoryColors;
+    final index = note.id.hashCode % colors.length;
+    return colors[index];
   }
 
   String _formatDate(DateTime date) {
