@@ -324,6 +324,21 @@ class S {
       args: [],
     );
   }
+
+  /// `• 按关键词、标签或内容搜索\n• 使用引号表示精确短语\n'• 按日期搜索：上周、昨天\n• 使用 OCR 搜索图像中的文本`
+  String get searchTipsDetails {
+    return Intl.message(
+      '• 按关键词、标签或内容搜索\n• 使用引号表示精确短语\n\'• 按日期搜索：上周、昨天\n• 使用 OCR 搜索图像中的文本',
+      name: 'searchTipsDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `搜索笔记`
+  String get searchNotes {
+    return Intl.message('搜索笔记', name: 'searchNotes', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

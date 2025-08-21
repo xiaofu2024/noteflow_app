@@ -118,7 +118,7 @@ class _SearchPageState extends State<SearchPage> {
                     onChanged: _performSearch,
                     onSubmitted: _performSearch,
                     decoration: InputDecoration(
-                      hintText: 'Search your notes...',
+                      hintText: localization.S.of(context).searchNotes,
                       prefixIcon: Icon(
                         Icons.search_rounded,
                         size: 24.sp,
@@ -151,7 +151,7 @@ class _SearchPageState extends State<SearchPage> {
                   
                   // Quick Actions
                   Text(
-                    'Quick Actions',
+                    localization.S.of(context).quickActions,
                     style: AppTextStyles.titleSmall.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
@@ -262,7 +262,7 @@ class _SearchPageState extends State<SearchPage> {
         // Recent Searches
         if (_recentSearches.isNotEmpty) ...[
           Text(
-            'Recent Searches',
+            localization.S.of(context).recentSearches,
             style: AppTextStyles.titleMedium,
           ),
           SizedBox(height: 12.h),
@@ -331,7 +331,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   SizedBox(width: 8.w),
                   Text(
-                    'Search Tips',
+                    localization.S.of(context).searchTips,
                     style: AppTextStyles.titleSmall.copyWith(
                       color: AppColors.primary,
                     ),
@@ -340,10 +340,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
               SizedBox(height: 12.h),
               Text(
-                '• Search by keywords, tags, or content\n'
-                '• Use quotes for exact phrases\n'
-                '• Search by date: "last week", "yesterday"\n'
-                '• Use OCR to search text in images',
+                localization.S.of(context).searchTipsDetails,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                   height: 1.5,
@@ -415,14 +412,14 @@ class _SearchPageState extends State<SearchPage> {
           ),
           SizedBox(height: 16.h),
           Text(
-            'No notes found',
+            localization.S.of(context).noNotesFound,
             style: AppTextStyles.titleMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           SizedBox(height: 8.h),
           Text(
-            'Try different keywords or create a new note',
+            localization.S.of(context).tryDifferentKeywords,
             style: AppTextStyles.bodyMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),

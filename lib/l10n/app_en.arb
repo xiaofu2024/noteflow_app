@@ -44,5 +44,8 @@
   "tryDifferentKeywords": "Try different keywords or create a new note",
   "searchError": "Search Error",
   "foundNotes": "Found {count} note{plural}",
-  "aiFeatureComingSoon": "AI助手功能即将推出..."
+  "aiFeatureComingSoon": "AI助手功能即将推出...",
+
+  "searchTipsDetails": "• Search by keywords, tags, or content\n• Use quotes for exact phrases\n'• Search by date: last week, yesterday\n• Use OCR to search text in images",
+  "searchNotes": "Search Notes"
 }
