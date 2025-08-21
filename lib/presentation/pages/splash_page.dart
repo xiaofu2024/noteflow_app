@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/services/user_preferences_service.dart';
+import '../../core/services/biometric_auth_service.dart';
 import 'home/main_navigation_page.dart';
+import 'auth/biometric_lock_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -66,21 +70,58 @@ class _SplashPageState extends State<SplashPage>
     // Hold for a moment
     await Future.delayed(const Duration(milliseconds: 1000));
     
-    // Navigate to main page
+    // Check if biometric lock is enabled
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              const MainNavigationPage(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 500),
-        ),
-      );
+      final prefsService = GetIt.instance<UserPreferencesService>();
+      final biometricEnabled = prefsService.biometricEnabled;
+      
+      if (biometricEnabled) {
+        // Show biometric lock screen
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                BiometricLockPage(
+                  onAuthenticated: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const MainNavigationPage(),
+                      ),
+                    );
+                  },
+                  onCancel: () {
+                    // User cancelled authentication, exit app
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const MainNavigationPage(),
+                      ),
+                    );
+                  },
+                ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        );
+      } else {
+        // Navigate directly to main page
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const MainNavigationPage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: animation,
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        );
+      }
     }
   }
 

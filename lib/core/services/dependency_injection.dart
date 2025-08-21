@@ -11,6 +11,8 @@ import '../../domain/usecases/notes/search_notes_usecase.dart';
 import '../../presentation/bloc/notes/notes_bloc.dart';
 import 'user_preferences_service.dart';
 import 'theme_manager.dart';
+import 'biometric_auth_service.dart';
+import 'data_export_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -23,6 +25,8 @@ Future<void> initializeDependencies() async {
   await sl<UserPreferencesService>().init();
   
   sl.registerLazySingleton<ThemeManager>(() => ThemeManager(sl()));
+  sl.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());
+  sl.registerLazySingleton<DataExportService>(() => DataExportService());
   
   // Initialize database and add sample data
   await _initializeSampleData();

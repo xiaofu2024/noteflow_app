@@ -10,6 +10,8 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../core/services/user_preferences_service.dart';
 import '../../../core/services/theme_manager.dart';
+import '../../../core/services/biometric_auth_service.dart';
+import '../../../core/services/data_export_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../settings/webview_page.dart';
@@ -24,6 +26,8 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late UserPreferencesService _prefsService;
   late ThemeManager _themeManager;
+  late BiometricAuthService _biometricService;
+  late DataExportService _exportService;
   bool _isLoading = true;
   
   // Settings values
@@ -41,6 +45,8 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _prefsService = GetIt.instance<UserPreferencesService>();
     _themeManager = GetIt.instance<ThemeManager>();
+    _biometricService = GetIt.instance<BiometricAuthService>();
+    _exportService = GetIt.instance<DataExportService>();
     _loadSettings();
   }
 
@@ -58,39 +64,211 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  Future<void> _exportData() async {
-    try {
-      // Export user preferences and settings
-      final preferences = _prefsService.exportPreferences();
-      final jsonString = jsonEncode({
-        'export_date': DateTime.now().toIso8601String(),
-        'app_version': '1.0.0',
-        'preferences': preferences,
-      });
-
-      // Get temporary directory
-      final directory = await getTemporaryDirectory();
-      final file = File('${directory.path}/noteflow_backup_${DateTime.now().millisecondsSinceEpoch}.json');
-      
-      // Write to file
-      await file.writeAsString(jsonString);
-      
-      // Share the file
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'NoteFlow数据备份',
-        subject: 'NoteFlow备份文件',
-      );
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('数据导出成功')),
+  Future<void> _showExportDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('数据导出', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.storage_rounded),
+                title: const Text('完整数据备份'),
+                subtitle: const Text('导出所有笔记和设置'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportAllData();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.note_rounded),
+                title: const Text('仅导出笔记'),
+                subtitle: const Text('只导出笔记内容'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportNotesOnly();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_rounded),
+                title: const Text('导出设置'),
+                subtitle: const Text('选择导出格式'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showExportFormatDialog();
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+          ],
         );
+      },
+    );
+  }
+
+  Future<void> _showExportFormatDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('选择导出格式', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.code_rounded),
+                title: const Text('JSON格式'),
+                subtitle: const Text('结构化数据，便于程序处理'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportAllData(format: ExportFormat.json);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.description_rounded),
+                title: const Text('文本格式'),
+                subtitle: const Text('纯文本，便于阅读'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportAllData(format: ExportFormat.txt);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.table_chart_rounded),
+                title: const Text('CSV格式'),
+                subtitle: const Text('表格数据，便于Excel处理'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportAllData(format: ExportFormat.csv);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _exportAllData({ExportFormat format = ExportFormat.json}) async {
+    try {
+      // 显示加载对话框
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('正在导出数据...'),
+            ],
+          ),
+        ),
+      );
+
+      final result = await _exportService.exportAllData(format: format);
+      
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+
+      if (result == ExportResult.success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('数据导出成功'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('数据导出失败'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导出失败: $e')),
+          SnackBar(
+            content: Text('导出失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _exportNotesOnly() async {
+    try {
+      // 显示加载对话框
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('正在导出笔记...'),
+            ],
+          ),
+        ),
+      );
+
+      final result = await _exportService.exportNotesOnly();
+      
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+
+      if (result == ExportResult.success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('笔记导出成功'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('笔记导出失败'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('导出失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -144,6 +322,66 @@ class _SettingsPageState extends State<SettingsPage> {
       await _prefsService.setUserName(nameController.text.trim());
       await _prefsService.setUserEmail(emailController.text.trim());
       _loadSettings();
+    }
+  }
+
+  Future<void> _toggleBiometricLock(bool value) async {
+    if (value) {
+      // 启用生物识别锁，需要先验证
+      final status = await _biometricService.checkBiometricStatus();
+      
+      if (status != BiometricStatus.available) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_biometricService.getBiometricStatusDescription(status)),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+      
+      final authResult = await _biometricService.authenticate(
+        localizedReason: '验证身份以启用生物识别锁',
+      );
+      
+      if (authResult == AuthenticationStatus.authenticated) {
+        await _prefsService.setBiometricEnabled(true);
+        setState(() {
+          _biometricEnabled = true;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('生物识别锁已启用'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_biometricService.getAuthenticationStatusDescription(authResult)),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } else {
+      // 禁用生物识别锁
+      await _prefsService.setBiometricEnabled(false);
+      setState(() {
+        _biometricEnabled = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('生物识别锁已禁用'),
+          ),
+        );
+      }
     }
   }
 
@@ -309,10 +547,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     subtitle: '使用指纹或Face ID解锁',
                     value: _biometricEnabled,
                     onChanged: (value) async {
-                      await _prefsService.setBiometricEnabled(value);
-                      setState(() {
-                        _biometricEnabled = value;
-                      });
+                      await _toggleBiometricLock(value);
                     },
                   ),
                   _buildTile(
@@ -327,7 +562,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildTile(
                     title: '数据导出',
                     subtitle: '导出您的笔记和设置数据',
-                    onTap: _exportData,
+                    onTap: _showExportDialog,
                   ),
                 ],
               ),
