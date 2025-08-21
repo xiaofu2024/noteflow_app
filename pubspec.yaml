@@ -55,6 +55,7 @@ dependencies:
   image_picker: ^1.0.5
   share_plus: ^7.0.0
   url_launcher: ^6.2.2
+  webview_flutter: ^4.8.0
   dartz: ^0.10.1
   get_it: ^8.2.0
   
@@ -91,6 +92,7 @@ flutter:
     - assets/icons/
     - assets/animations/
     - assets/sounds/
+    - assets/html/
 
 flutter_intl:
   enabled: true

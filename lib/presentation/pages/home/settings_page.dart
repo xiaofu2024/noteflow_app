@@ -12,6 +12,7 @@ import '../../../core/services/user_preferences_service.dart';
 import '../../../core/services/theme_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../settings/webview_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -436,14 +437,28 @@ class _SettingsPageState extends State<SettingsPage> {
                     title: '隐私政策',
                     subtitle: '查看我们的隐私政策',
                     onTap: () {
-                      _showInfoDialog('隐私政策', '我们重视您的隐私，致力于保护您的个人信息安全。所有笔记数据都存储在您的设备本地，我们不会收集或上传您的笔记内容。');
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const WebViewPage(
+                            title: '隐私政策',
+                            url: 'https://noteflow.app/privacy',
+                          ),
+                        ),
+                      );
                     },
                   ),
                   _buildTile(
                     title: '服务条款',
                     subtitle: '查看服务条款',
                     onTap: () {
-                      _showInfoDialog('服务条款', '感谢您使用NoteFlow。本应用免费提供，旨在帮助您更好地管理笔记。请合理使用本应用，不要用于非法用途。');
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const WebViewPage(
+                            title: '服务条款',
+                            url: 'https://noteflow.app/terms',
+                          ),
+                        ),
+                      );
                     },
                   ),
                   _buildTile(
