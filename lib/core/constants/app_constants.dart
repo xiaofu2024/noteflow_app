@@ -4,8 +4,11 @@ class AppConstants {
   static const String appVersion = '1.0.0';
   
   // API Configuration
-  static const String baseUrl = 'https://api.noteflow.com';
+  static const String baseUrl = 'https://shl-api.weletter01.com';
   static const String apiVersion = 'v1';
+
+  //上传文件访问地址
+  static const String imagebase = "https://shl-api.weletter01.com/assets/文件ID";
   
   // Storage Keys
   static const String userTokenKey = 'user_token';

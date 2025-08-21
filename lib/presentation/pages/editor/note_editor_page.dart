@@ -54,14 +54,18 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
   bool _hasChanges = false;
 
   final List<int> _colorOptions = [
+    0xFFE91E63,
+    0xFF4CAF50,
+    0xFF2196F3,
+    0xFFFF9800,
+    0xFF9C27B0,
+    0xFF009688,
+    0xFFFFC107,
     0xFFFFFFFF, // White
     0xFFFFEBEE, // Pink
     0xFFE3F2FD, // Blue
     0xFFE8F5E8, // Green
     0xFFFFF3E0, // Orange
-    0xFFF3E5F5, // Purple
-    0xFFE0F2F1, // Teal
-    0xFFFFF8E1, // Amber
   ];
 
   @override

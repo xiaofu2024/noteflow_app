@@ -3,10 +3,13 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/uuid.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/services/ai_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../domain/entities/note_entity.dart';
 import '../editor/note_editor_page.dart';
 
 class VoiceNotePage extends StatefulWidget {
@@ -189,10 +192,24 @@ class _VoiceNotePageState extends State<VoiceNotePage>
 
   void _createNoteFromText() {
     if (_recognizedText.isNotEmpty) {
+      final noteContent = _recognizedText!.trim();
+      final note = NoteEntity(
+        id: const Uuid().v4(),
+        title: '语音识别笔记',
+        content: noteContent,
+        color: 0xFFE91E63,
+        tags: [],
+        isPinned: false,
+        userId: AppConstants.userIdKey,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const NoteEditorPageWrapper(
+          builder: (context) => NoteEditorPageWrapper(
             isNewNote: true,
+            note: note,
           ),
         ),
       );
