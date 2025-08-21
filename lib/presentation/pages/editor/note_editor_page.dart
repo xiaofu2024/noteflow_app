@@ -311,6 +311,15 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
     });
   }
 
+  Color _getSafeBackgroundColor(Color selectedColor) {
+    // Always use a very light version of the selected color as background
+    // to prevent dark backgrounds that make text unreadable
+    final hsl = HSLColor.fromColor(selectedColor);
+    
+    // Ensure the background is always light by setting high lightness and low saturation
+    return hsl.withLightness(0.97).withSaturation(0.1).toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<NotesBloc, NotesState>(
@@ -351,7 +360,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
         },
         child: Scaffold(
           backgroundColor: _selectedColor != null 
-              ? Color(_selectedColor!).withOpacity(0.05)
+              ? _getSafeBackgroundColor(Color(_selectedColor!))
               : Theme.of(context).colorScheme.background,
           appBar: AppBar(
             elevation: 0,

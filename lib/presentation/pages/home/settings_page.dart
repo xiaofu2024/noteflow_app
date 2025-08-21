@@ -727,26 +727,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  void _showInfoDialog(String title, String content) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(title, style: AppTextStyles.titleMedium),
-          content: Text(
-            content,
-            style: AppTextStyles.bodyMedium,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   void _showContactDialog() {
     showDialog(

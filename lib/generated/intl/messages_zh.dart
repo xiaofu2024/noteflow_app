@@ -41,6 +41,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("删除"),
     "edit": MessageLookupByLibrary.simpleMessage("编辑"),
     "emptyNotes": MessageLookupByLibrary.simpleMessage("暂无笔记"),
+    "errorLoadingnotes": MessageLookupByLibrary.simpleMessage("加载笔记时出错"),
     "errorOccurred": MessageLookupByLibrary.simpleMessage("发生错误"),
     "foundNotes": m0,
     "language": MessageLookupByLibrary.simpleMessage("语言"),

@@ -117,7 +117,7 @@ class NoteCard extends StatelessWidget {
                       child: Text(
                         '#$tag',
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: _getNoteColor(),
+                          color: _getContrastingTextColor(_getNoteColor()),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -219,7 +219,7 @@ class NoteCard extends StatelessWidget {
                             child: Text(
                               '#$tag',
                               style: AppTextStyles.labelSmall.copyWith(
-                                color: _getNoteColor(),
+                                color: _getContrastingTextColor(_getNoteColor()),
                                 fontSize: 10.sp,
                               ),
                             ),
@@ -251,6 +251,25 @@ class NoteCard extends StatelessWidget {
     final colors = AppColors.noteCategoryColors;
     final index = note.id.hashCode % colors.length;
     return colors[index];
+  }
+
+  Color _getContrastingTextColor(Color backgroundColor) {
+    // Calculate luminance to determine if we need light or dark text
+    final luminance = backgroundColor.computeLuminance();
+    
+    // If the background is light, use dark text; if dark, use light text
+    if (luminance > 0.5) {
+      // Use a darker version of the background color for text
+      return Color.fromRGBO(
+        (backgroundColor.red * 0.6).round(),
+        (backgroundColor.green * 0.6).round(),
+        (backgroundColor.blue * 0.6).round(),
+        1.0,
+      );
+    } else {
+      // Use white text for dark backgrounds
+      return Colors.white;
+    }
   }
 
   String _formatDate(DateTime date) {

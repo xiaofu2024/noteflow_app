@@ -339,6 +339,16 @@ class S {
   String get searchNotes {
     return Intl.message('搜索笔记', name: 'searchNotes', desc: '', args: []);
   }
+
+  /// `加载笔记时出错`
+  String get errorLoadingnotes {
+    return Intl.message(
+      '加载笔记时出错',
+      name: 'errorLoadingnotes',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
