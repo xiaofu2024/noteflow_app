@@ -441,7 +441,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         MaterialPageRoute(
                           builder: (context) => const WebViewPage(
                             title: '隐私政策',
-                            url: 'https://noteflow.app/privacy',
+                            url: 'https://shl-api.weletter01.com/private-protocol/privacy_policy.html',
                           ),
                         ),
                       );
@@ -455,7 +455,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         MaterialPageRoute(
                           builder: (context) => const WebViewPage(
                             title: '服务条款',
-                            url: 'https://noteflow.app/terms',
+                            url: 'https://shl-api.weletter01.com/private-protocol/user_agreement.html',
                           ),
                         ),
                       );
