@@ -307,16 +307,15 @@ class _NotesPageState extends State<NotesPage> {
           return const SizedBox.shrink();
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createNewNote,
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: Icon(Icons.add_rounded, size: 24.sp),
-        label: Text(
-          '',
-          style: AppTextStyles.buttonText.copyWith(color: Colors.white),
-        ),
-      ),
+      floatingActionButton: FloatingActionButton(
+      onPressed: _createNewNote,
+      backgroundColor: AppColors.primary,
+      foregroundColor: Colors.white,
+      child: Icon(
+        Icons.add_rounded,
+        size: 28.sp,
+    ),),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
