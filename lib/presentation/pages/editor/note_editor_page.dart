@@ -11,12 +11,12 @@ import '../../../domain/entities/note_entity.dart';
 import '../../bloc/notes/notes_bloc.dart';
 
 class NoteEditorPage extends StatefulWidget {
-  final NoteEntity? note;
+  final NoteEntity? noteParam;
   final bool isNewNote;
 
   const NoteEditorPage({
     super.key,
-    this.note,
+    this.noteParam,
     this.isNewNote = true,
   });
 
@@ -38,7 +38,7 @@ class NoteEditorPageWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => GetIt.instance<NotesBloc>(),
-      child: NoteEditorPage(note: note, isNewNote: isNewNote),
+      child: NoteEditorPage(noteParam: note, isNewNote: isNewNote),
     );
   }
 }
@@ -77,15 +77,15 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
   }
 
   void _initializeControllers() {
-    _titleController = TextEditingController(text: widget.note?.title ?? '');
-    _contentController = TextEditingController(text: widget.note?.content ?? '');
+    _titleController = TextEditingController(text: widget.noteParam?.title ?? '');
+    _contentController = TextEditingController(text: widget.noteParam?.content ?? '');
     _titleFocusNode = FocusNode();
     _contentFocusNode = FocusNode();
 
-    if (widget.note != null) {
-      _tags = List.from(widget.note!.tags);
-      _isPinned = widget.note!.isPinned;
-      _selectedColor = widget.note!.color;
+    if (widget.noteParam != null) {
+      _tags = List.from(widget.noteParam!.tags);
+      _isPinned = widget.noteParam!.isPinned;
+      _selectedColor = widget.noteParam!.color;
     } else {
       // Auto-focus title for new notes
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -135,8 +135,8 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
         title: title.isEmpty ? '无标题' : title,
         content: content,
         tags: _tags,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
+        createdAt: widget.noteParam?.createdAt ?? DateTime.now(),
+        updatedAt: widget.noteParam?.updatedAt ?? DateTime.now(),
         isPinned: _isPinned,
         isEncrypted: false,
         color: _selectedColor,
@@ -150,7 +150,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
         const SnackBar(content: Text('添加成功！')),
       );
     } else {
-      final updatedNote = widget.note!.copyWith(
+      final updatedNote = widget.noteParam!.copyWith(
         title: title.isEmpty ? '无标题' : title,
         content: content,
         tags: _tags,
@@ -169,7 +169,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
   }
 
   void _deleteNote() {
-    if (!widget.isNewNote && widget.note != null) {
+    if (!widget.isNewNote && widget.noteParam != null) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -182,7 +182,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
             ),
             TextButton(
               onPressed: () {
-                context.read<NotesBloc>().add(DeleteNoteEvent(widget.note!.id));
+                context.read<NotesBloc>().add(DeleteNoteEvent(widget.noteParam!.id));
                 Navigator.of(context).pop(); // Close dialog
                 Navigator.of(context).pop(); // Close editor
               },

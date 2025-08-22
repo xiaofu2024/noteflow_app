@@ -17,8 +17,8 @@ class CreateNoteUseCase {
       title: params.title.trim(),
       content: params.content.trim(),
       tags: params.tags ?? [],
-      createdAt: now,
-      updatedAt: now,
+      createdAt: params.createdAt ?? now,
+      updatedAt: params.updatedAt ?? now,
       isPinned: params.isPinned ?? false,
       isEncrypted: params.isEncrypted ?? false,
       password: params.password,
@@ -55,6 +55,8 @@ class CreateNoteParams {
   final bool? isFavorite;
   final List<String>? attachments;
   final Map<String, dynamic>? metadata;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
   CreateNoteParams({
     this.id,
@@ -69,5 +71,7 @@ class CreateNoteParams {
     this.isFavorite,
     this.attachments,
     this.metadata,
+    this.createdAt,
+    this.updatedAt,
   });
 }

@@ -216,7 +216,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   }
                 },
                 onPageChanged: (focusedDay) {
-                  _focusedDay = focusedDay;
+                  setState(() {
+                    _focusedDay = focusedDay;
+                  });
                   // Load notes for the new month
                   context.read<NotesBloc>().add(
                     LoadNotesEvent(userId: 'user_1'),

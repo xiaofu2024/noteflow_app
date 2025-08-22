@@ -386,10 +386,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Handle bar
           Center(
             child: Container(
@@ -443,7 +444,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             sortType: NotesSortType.isPinned,
           ),
 
-          SizedBox(height: 24.h),
+        /*  SizedBox(height: 24.h),
 
           // Filter Section
           Text(
@@ -472,7 +473,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               _applyFilter();
             },
           ),
-
+*/
           SizedBox(height: 16.h),
 
           // Action buttons
@@ -510,7 +511,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               ),
             ],
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

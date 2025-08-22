@@ -83,6 +83,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       isFavorite: event.note.isFavorite,
       attachments: event.note.attachments,
       metadata: event.note.metadata,
+      createdAt: event.note.createdAt,
+      updatedAt: event.note.updatedAt,
     ));
 
     result.fold(
