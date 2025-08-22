@@ -31,12 +31,44 @@ class NotesPageWrapper extends StatelessWidget {
   }
 }
 
-class _NotesPageState extends State<NotesPage> {
+class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
   bool _isGridView = false;
   final ScrollController _scrollController = ScrollController();
+  late UserPreferencesService _prefsService;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefsService = GetIt.instance<UserPreferencesService>();
+    _loadViewMode();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void _loadViewMode() {
+    setState(() {
+      _isGridView = _prefsService.noteViewMode == 'grid';
+    });
+  }
+
+  Future<void> _toggleViewMode() async {
+    final newMode = _isGridView ? 'list' : 'grid';
+    await _prefsService.setNoteViewMode(newMode);
+    setState(() {
+      _isGridView = !_isGridView;
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _loadViewMode();
+    }
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
   }
@@ -165,7 +197,7 @@ class _NotesPageState extends State<NotesPage> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => setState(() => _isGridView = !_isGridView),
+                      onPressed: _toggleViewMode,
                       icon: Icon(
                         _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
                         size: 24.sp,

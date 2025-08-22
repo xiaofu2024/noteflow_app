@@ -174,12 +174,12 @@ class _SearchPageState extends State<SearchPage> {
                         color: AppColors.secondary,
                         onTap: _openVoiceNote,
                       ),
-                      _buildQuickActionButton(
-                        icon: Icons.auto_awesome_rounded,
-                        label: localization.S.of(context).aiHelp,
-                        color: AppColors.accent,
-                        onTap: _openAIHelp,
-                      ),
+                      // _buildQuickActionButton(
+                      //   icon: Icons.auto_awesome_rounded,
+                      //   label: localization.S.of(context).aiHelp,
+                      //   color: AppColors.accent,
+                      //   onTap: _openAIHelp,
+                      // ),
                     ],
                   ),
                 ],
