@@ -170,21 +170,21 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
 
   void _deleteNote() {
     if (!widget.isNewNote && widget.noteParam != null) {
+      final notesBloc = context.read<NotesBloc>();
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
+        builder: (dialogContext) => AlertDialog(
           title: const Text('删除笔记'),
           content: const Text('确定要删除这条笔记吗？此操作无法撤销。'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('取消'),
             ),
             TextButton(
               onPressed: () {
-                context.read<NotesBloc>().add(DeleteNoteEvent(widget.noteParam!.id));
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Close editor
+                Navigator.of(dialogContext).pop(); // Close dialog
+                notesBloc.add(DeleteNoteEvent(widget.noteParam!.id));
               },
               style: TextButton.styleFrom(foregroundColor: Colors.red),
               child: const Text('删除'),
@@ -317,12 +317,16 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
   }
 
   Color _getSafeBackgroundColor(Color selectedColor) {
-    // Always use a very light version of the selected color as background
-    // to prevent dark backgrounds that make text unreadable
+    final brightness = Theme.of(context).brightness;
     final hsl = HSLColor.fromColor(selectedColor);
     
-    // Ensure the background is always light by setting high lightness and low saturation
-    return hsl.withLightness(0.97).withSaturation(0.1).toColor();
+    if (brightness == Brightness.dark) {
+      // 夜间模式：使用深色版本，但保持可读性
+      return hsl.withLightness(0.15).withSaturation(0.3).toColor();
+    } else {
+      // 日间模式：使用浅色版本
+      return hsl.withLightness(0.95).withSaturation(0.2).toColor();
+    }
   }
 
   double get _userFontSize {
@@ -339,7 +343,20 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       listener: (context, state) {
         if (state is NotesError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
+            SnackBar(
+              content: Text('操作失败: ${state.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else if (state is NoteDeleted) {
+          // Close editor page
+          Navigator.of(context).pop();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('笔记已删除'),
+              backgroundColor: Colors.green,
+            ),
           );
         }
       },
@@ -374,7 +391,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
         child: Scaffold(
           backgroundColor: _selectedColor != null 
               ? _getSafeBackgroundColor(Color(_selectedColor!))
-              : Theme.of(context).colorScheme.background,
+              : Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             elevation: 0,
             backgroundColor: Colors.transparent,
@@ -382,7 +399,9 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
               onPressed: () => Navigator.of(context).pop(),
               icon: Icon(
                 Icons.arrow_back_rounded,
-                color: Theme.of(context).colorScheme.onBackground,
+                color: _selectedColor != null 
+                    ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
             actions: [
@@ -390,14 +409,20 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
                 onPressed: _togglePin,
                 icon: Icon(
                   _isPinned ? Icons.push_pin_rounded : Icons.push_pin_outlined,
-                  color: _isPinned ? AppColors.primary : Theme.of(context).colorScheme.onBackground,
+                  color: _isPinned 
+                      ? AppColors.primary 
+                      : (_selectedColor != null 
+                          ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+                          : Theme.of(context).colorScheme.onSurface),
                 ),
               ),
               IconButton(
                 onPressed: _showColorPicker,
                 icon: Icon(
                   Icons.palette_outlined,
-                  color: Theme.of(context).colorScheme.onBackground,
+                  color: _selectedColor != null 
+                      ? (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               if (!widget.isNewNote)
