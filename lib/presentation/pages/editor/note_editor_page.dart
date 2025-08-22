@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/services/user_preferences_service.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../../bloc/notes/notes_bloc.dart';
 
@@ -324,6 +325,14 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
     return hsl.withLightness(0.97).withSaturation(0.1).toColor();
   }
 
+  double get _userFontSize {
+    try {
+      return GetIt.instance<UserPreferencesService>().fontSize;
+    } catch (e) {
+      return 14.0; // fallback to default
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<NotesBloc, NotesState>(
@@ -422,11 +431,13 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
                         focusNode: _titleFocusNode,
                         style: AppTextStyles.titleLarge.copyWith(
                           fontWeight: FontWeight.w600,
+                          fontSize: (_userFontSize + 6).sp,
                         ),
                         decoration: InputDecoration(
                           hintText: '标题',
                           hintStyle: AppTextStyles.titleLarge.copyWith(
                             color: Theme.of(context).colorScheme.onBackground.withOpacity(0.5),
+                            fontSize: (_userFontSize + 6).sp,
                           ),
                           border: InputBorder.none,
                         ),
@@ -506,11 +517,14 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
                         child: TextField(
                           controller: _contentController,
                           focusNode: _contentFocusNode,
-                          style: AppTextStyles.bodyMedium,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            fontSize: _userFontSize.sp,
+                          ),
                           decoration: InputDecoration(
                             hintText: '开始写下你的想法...',
                             hintStyle: AppTextStyles.bodyMedium.copyWith(
                               color: Theme.of(context).colorScheme.onBackground.withOpacity(0.5),
+                              fontSize: _userFontSize.sp,
                             ),
                             border: InputBorder.none,
                           ),

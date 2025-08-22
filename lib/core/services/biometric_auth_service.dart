@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
 
@@ -25,6 +24,15 @@ class BiometricAuthService {
   BiometricAuthService._internal();
 
   final LocalAuthentication _localAuth = LocalAuthentication();
+  String? _lastError;
+
+  // 获取最后的错误信息
+  String? get lastError => _lastError;
+
+  // 清除错误信息
+  void clearError() {
+    _lastError = null;
+  }
 
   // 检查设备是否支持生物识别
   Future<bool> get isDeviceSupported async {
@@ -53,9 +61,9 @@ class BiometricAuthService {
       }
 
       return BiometricStatus.available;
-    } on PlatformException {
+    } on PlatformException catch (e) {
       // 如果发生异常，返回未知状态
-      debugPrint('Error checking biometric status: $BiometricStatus');
+      debugPrint('Error checking biometric status: ${e.code} - ${e.message}');
       return BiometricStatus.unknown;
     }
   }
@@ -79,10 +87,14 @@ class BiometricAuthService {
     bool sensitiveTransaction = true,
   }) async {
     try {
+      // 清除之前的错误
+      _lastError = null;
+      
       final BiometricStatus status = await checkBiometricStatus();
       
       if (status == BiometricStatus.notAvailable || 
           status == BiometricStatus.notEnrolled) {
+        _lastError = '生物识别不可用或未设置';
         return AuthenticationStatus.notAvailable;
       }
 
@@ -96,13 +108,18 @@ class BiometricAuthService {
         ),
       );
 
+      if (!isAuthenticated) {
+        _lastError = '身份验证失败';
+      }
+
       return isAuthenticated 
           ? AuthenticationStatus.authenticated 
           : AuthenticationStatus.error;
 
     } on PlatformException catch (e) {
-      debugPrint('Error during biometric authentication: ${e.code}');
-      SmartDialog.showToast(e.message ?? '人脸认证失败');
+      debugPrint('Error during biometric authentication: ${e.code} - ${e.message}');
+      _lastError = e.message ?? '认证过程中发生错误: ${e.code}';
+      
       switch (e.code) {
         case 'NotAvailable':
         case 'NotEnrolled':

@@ -18,6 +18,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final DeleteNoteUseCase deleteNoteUseCase;
   final SearchNotesUseCase searchNotesUseCase;
 
+  // Current filter and sort settings
+  NotesFilter _currentFilter = const NotesFilter();
+  NotesSortType _currentSortType = NotesSortType.updatedAt;
+  bool _sortAscending = false;
+
   NotesBloc({
     required this.getNotesUseCase,
     required this.createNoteUseCase,
@@ -34,6 +39,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<ToggleNoteFavoriteEvent>(_onToggleNoteFavorite);
     on<RefreshNotesEvent>(_onRefreshNotes);
     on<LoadNotesByDateEvent>(_onLoadNotesByDate);
+    on<FilterNotesEvent>(_onFilterNotes);
+    on<SortNotesEvent>(_onSortNotes);
   }
 
   Future<void> _onLoadNotes(LoadNotesEvent event, Emitter<NotesState> emit) async {
@@ -51,11 +58,15 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
     result.fold(
       (failure) => emit(NotesError(failure.message)),
-      (notes) => emit(NotesLoaded(
-        notes: notes,
-        pinnedNotes: notes.where((note) => note.isPinned).toList(),
-        recentNotes: notes.where((note) => !note.isPinned).toList(),
-      )),
+      (notes) {
+        final processedNotes = _applySortAndFilter(notes);
+        
+        emit(NotesLoaded(
+          notes: processedNotes,
+          pinnedNotes: processedNotes.where((note) => note.isPinned).toList(),
+          recentNotes: processedNotes.where((note) => !note.isPinned).toList(),
+        ));
+      },
     );
   }
 
@@ -194,12 +205,123 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           return createdAt.isAfter(startOfDay) && createdAt.isBefore(endOfDay);
         }).toList();
 
+        final processedNotes = _applySortAndFilter(notesForDate);
+
         emit(NotesLoaded(
-          notes: notesForDate,
-          pinnedNotes: notesForDate.where((note) => note.isPinned).toList(),
-          recentNotes: notesForDate.where((note) => !note.isPinned).toList(),
+          notes: processedNotes,
+          pinnedNotes: processedNotes.where((note) => note.isPinned).toList(),
+          recentNotes: processedNotes.where((note) => !note.isPinned).toList(),
         ));
       },
     );
   }
+
+  Future<void> _onFilterNotes(FilterNotesEvent event, Emitter<NotesState> emit) async {
+    _currentFilter = event.filter;
+    
+    if (state is NotesLoaded) {
+      final currentState = state as NotesLoaded;
+      final filteredNotes = _applyFilterToNotes(currentState.notes);
+      final sortedNotes = _applySortToNotes(filteredNotes);
+      
+      emit(NotesLoaded(
+        notes: sortedNotes,
+        pinnedNotes: sortedNotes.where((note) => note.isPinned).toList(),
+        recentNotes: sortedNotes.where((note) => !note.isPinned).toList(),
+      ));
+    } else {
+      // Reload notes with new filter
+      add(const LoadNotesEvent(userId: 'user_1'));
+    }
+  }
+
+  Future<void> _onSortNotes(SortNotesEvent event, Emitter<NotesState> emit) async {
+    _currentSortType = event.sortType;
+    _sortAscending = event.ascending;
+    
+    if (state is NotesLoaded) {
+      final currentState = state as NotesLoaded;
+      final sortedNotes = _applySortToNotes(currentState.notes);
+      
+      emit(NotesLoaded(
+        notes: sortedNotes,
+        pinnedNotes: sortedNotes.where((note) => note.isPinned).toList(),
+        recentNotes: sortedNotes.where((note) => !note.isPinned).toList(),
+      ));
+    }
+  }
+
+  List<NoteEntity> _applySortAndFilter(List<NoteEntity> notes) {
+    final filteredNotes = _applyFilterToNotes(notes);
+    return _applySortToNotes(filteredNotes);
+  }
+
+  List<NoteEntity> _applyFilterToNotes(List<NoteEntity> notes) {
+    var filteredNotes = notes;
+
+    // Apply pinned filter
+    if (_currentFilter.showPinned != null) {
+      filteredNotes = filteredNotes.where((note) => 
+        note.isPinned == _currentFilter.showPinned).toList();
+    }
+
+    // Apply favorites filter
+    if (_currentFilter.showFavorites != null) {
+      filteredNotes = filteredNotes.where((note) => 
+        note.isFavorite == _currentFilter.showFavorites).toList();
+    }
+
+    // Apply tags filter
+    if (_currentFilter.tags != null && _currentFilter.tags!.isNotEmpty) {
+      filteredNotes = filteredNotes.where((note) =>
+        _currentFilter.tags!.any((filterTag) => 
+          note.tags.contains(filterTag))).toList();
+    }
+
+    // Apply search query filter
+    if (_currentFilter.searchQuery != null && 
+        _currentFilter.searchQuery!.trim().isNotEmpty) {
+      final query = _currentFilter.searchQuery!.toLowerCase();
+      filteredNotes = filteredNotes.where((note) =>
+        note.title.toLowerCase().contains(query) ||
+        note.content.toLowerCase().contains(query) ||
+        note.tags.any((tag) => tag.toLowerCase().contains(query))).toList();
+    }
+
+    return filteredNotes;
+  }
+
+  List<NoteEntity> _applySortToNotes(List<NoteEntity> notes) {
+    final sortedNotes = List<NoteEntity>.from(notes);
+
+    sortedNotes.sort((a, b) {
+      int comparison = 0;
+
+      switch (_currentSortType) {
+        case NotesSortType.createdAt:
+          comparison = (a.createdAt ?? DateTime.now())
+              .compareTo(b.createdAt ?? DateTime.now());
+          break;
+        case NotesSortType.updatedAt:
+          comparison = (a.updatedAt ?? DateTime.now())
+              .compareTo(b.updatedAt ?? DateTime.now());
+          break;
+        case NotesSortType.title:
+          comparison = a.title.toLowerCase().compareTo(b.title.toLowerCase());
+          break;
+        case NotesSortType.isPinned:
+          comparison = b.isPinned.toString().compareTo(a.isPinned.toString());
+          break;
+      }
+
+      return _sortAscending ? comparison : -comparison;
+    });
+
+    return sortedNotes;
+  }
+
+  // Getters for current filter and sort state
+  NotesFilter get currentFilter => _currentFilter;
+  NotesSortType get currentSortType => _currentSortType;
+  bool get sortAscending => _sortAscending;
 }

@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/services/user_preferences_service.dart';
 import '../../bloc/notes/notes_bloc.dart';
 import '../../widgets/note_card.dart';
 import '../editor/note_editor_page.dart';
@@ -317,41 +318,243 @@ class _NotesPageState extends State<NotesPage> {
   }
 }
 
-class FilterBottomSheet extends StatelessWidget {
+class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({super.key});
+
+  @override
+  State<FilterBottomSheet> createState() => _FilterBottomSheetState();
+}
+
+class _FilterBottomSheetState extends State<FilterBottomSheet> {
+  NotesSortType _selectedSort = NotesSortType.updatedAt;
+  bool _sortAscending = false;
+  bool _showOnlyPinned = false;
+  bool _showOnlyFavorites = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Get current sort and filter state from bloc
+    final bloc = context.read<NotesBloc>();
+    _selectedSort = bloc.currentSortType;
+    _sortAscending = bloc.sortAscending;
+  }
+
+  void _applySorting(NotesSortType sortType) {
+    setState(() {
+      if (_selectedSort == sortType) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _selectedSort = sortType;
+        _sortAscending = sortType == NotesSortType.title;
+      }
+    });
+
+    context.read<NotesBloc>().add(SortNotesEvent(
+      sortType: _selectedSort,
+      ascending: _sortAscending,
+    ));
+  }
+
+  void _applyFilter() {
+    final filter = NotesFilter(
+      showPinned: _showOnlyPinned ? true : null,
+      showFavorites: _showOnlyFavorites ? true : null,
+    );
+
+    context.read<NotesBloc>().add(FilterNotesEvent(filter));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Handle bar
+          Center(
+            child: Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 16.h),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+          ),
+
           Text(
-            'Filter & Sort',
+            '过滤和排序',
             style: AppTextStyles.titleLarge,
           ),
+          SizedBox(height: 24.h),
+
+          // Sort Section
+          Text(
+            '排序方式',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: AppColors.primary,
+            ),
+          ),
+          SizedBox(height: 12.h),
+
+          _buildSortTile(
+            title: '最近修改',
+            subtitle: '按更新时间排序',
+            icon: Icons.schedule_rounded,
+            sortType: NotesSortType.updatedAt,
+          ),
+          _buildSortTile(
+            title: '创建时间',
+            subtitle: '按创建日期排序',
+            icon: Icons.calendar_today_rounded,
+            sortType: NotesSortType.createdAt,
+          ),
+          _buildSortTile(
+            title: '标题',
+            subtitle: '按标题字母序排序',
+            icon: Icons.sort_by_alpha_rounded,
+            sortType: NotesSortType.title,
+          ),
+          _buildSortTile(
+            title: '置顶优先',
+            subtitle: '置顶笔记在前',
+            icon: Icons.push_pin_rounded,
+            sortType: NotesSortType.isPinned,
+          ),
+
+          SizedBox(height: 24.h),
+
+          // Filter Section
+          Text(
+            '过滤选项',
+            style: AppTextStyles.titleMedium.copyWith(
+              color: AppColors.primary,
+            ),
+          ),
+          SizedBox(height: 12.h),
+
+          _buildFilterSwitch(
+            title: '仅显示置顶',
+            icon: Icons.push_pin_rounded,
+            value: _showOnlyPinned,
+            onChanged: (value) {
+              setState(() => _showOnlyPinned = value);
+              _applyFilter();
+            },
+          ),
+          _buildFilterSwitch(
+            title: '仅显示收藏',
+            icon: Icons.favorite_rounded,
+            value: _showOnlyFavorites,
+            onChanged: (value) {
+              setState(() => _showOnlyFavorites = value);
+              _applyFilter();
+            },
+          ),
+
           SizedBox(height: 16.h),
-          // TODO: Add filter options
-          ListTile(
-            leading: const Icon(Icons.schedule_rounded),
-            title: const Text('Recently Modified'),
-            onTap: () => Navigator.pop(context),
+
+          // Action buttons
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _showOnlyPinned = false;
+                      _showOnlyFavorites = false;
+                      _selectedSort = NotesSortType.updatedAt;
+                      _sortAscending = false;
+                    });
+                    
+                    context.read<NotesBloc>().add(const FilterNotesEvent(NotesFilter()));
+                    context.read<NotesBloc>().add(const SortNotesEvent(
+                      sortType: NotesSortType.updatedAt,
+                      ascending: false,
+                    ));
+                  },
+                  child: const Text('重置'),
+                ),
+              ),
+              SizedBox(width: 16.w),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('完成'),
+                ),
+              ),
+            ],
           ),
-          ListTile(
-            leading: const Icon(Icons.calendar_today_rounded),
-            title: const Text('Created Date'),
-            onTap: () => Navigator.pop(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.label_rounded),
-            title: const Text('By Tags'),
-            onTap: () => Navigator.pop(context),
-          ),
-          SizedBox(height: 16.h),
         ],
       ),
+    );
+  }
+
+  Widget _buildSortTile({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required NotesSortType sortType,
+  }) {
+    final isSelected = _selectedSort == sortType;
+    
+    return ListTile(
+      leading: Icon(
+        icon,
+        color: isSelected ? AppColors.primary : null,
+      ),
+      title: Text(
+        title,
+        style: AppTextStyles.bodyLarge.copyWith(
+          color: isSelected ? AppColors.primary : null,
+          fontWeight: isSelected ? FontWeight.w600 : null,
+        ),
+      ),
+      subtitle: Text(subtitle),
+      trailing: isSelected
+          ? Icon(
+              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              color: AppColors.primary,
+              size: 16.sp,
+            )
+          : null,
+      onTap: () => _applySorting(sortType),
+    );
+  }
+
+  Widget _buildFilterSwitch({
+    required String title,
+    required IconData icon,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return SwitchListTile(
+      secondary: Icon(
+        icon,
+        color: value ? AppColors.primary : null,
+      ),
+      title: Text(
+        title,
+        style: AppTextStyles.bodyLarge.copyWith(
+          color: value ? AppColors.primary : null,
+          fontWeight: value ? FontWeight.w600 : null,
+        ),
+      ),
+      value: value,
+      onChanged: onChanged,
+      activeColor: AppColors.primary,
     );
   }
 }

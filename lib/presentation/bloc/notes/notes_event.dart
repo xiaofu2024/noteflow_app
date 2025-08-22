@@ -117,3 +117,63 @@ class LoadNotesByDateEvent extends NotesEvent {
   @override
   List<Object?> get props => [date, userId];
 }
+
+class FilterNotesEvent extends NotesEvent {
+  final NotesFilter filter;
+
+  const FilterNotesEvent(this.filter);
+
+  @override
+  List<Object> get props => [filter];
+}
+
+class SortNotesEvent extends NotesEvent {
+  final NotesSortType sortType;
+  final bool ascending;
+
+  const SortNotesEvent({
+    required this.sortType,
+    this.ascending = true,
+  });
+
+  @override
+  List<Object> get props => [sortType, ascending];
+}
+
+enum NotesSortType {
+  createdAt,
+  updatedAt,
+  title,
+  isPinned,
+}
+
+class NotesFilter {
+  final bool? showPinned;
+  final bool? showFavorites;
+  final List<String>? tags;
+  final String? searchQuery;
+
+  const NotesFilter({
+    this.showPinned,
+    this.showFavorites,
+    this.tags,
+    this.searchQuery,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotesFilter &&
+          runtimeType == other.runtimeType &&
+          showPinned == other.showPinned &&
+          showFavorites == other.showFavorites &&
+          tags == other.tags &&
+          searchQuery == other.searchQuery;
+
+  @override
+  int get hashCode =>
+      showPinned.hashCode ^
+      showFavorites.hashCode ^
+      tags.hashCode ^
+      searchQuery.hashCode;
+}

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../core/services/user_preferences_service.dart';
 import '../../domain/entities/note_entity.dart';
 
 class NoteCard extends StatelessWidget {
@@ -47,6 +49,14 @@ class NoteCard extends StatelessWidget {
     );
   }
 
+  double get _userFontSize {
+    try {
+      return GetIt.instance<UserPreferencesService>().fontSize;
+    } catch (e) {
+      return 14.0; // fallback to default
+    }
+  }
+
   Widget _buildCardContent(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(isCompact ? 12.w : 16.w),
@@ -61,9 +71,11 @@ class NoteCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   note.title,
-                  style: isCompact 
+                  style: (isCompact 
                       ? AppTextStyles.titleSmall
-                      : AppTextStyles.titleMedium,
+                      : AppTextStyles.titleMedium).copyWith(
+                    fontSize: (_userFontSize + (isCompact ? 0 : 2)).sp,
+                  ),
                   maxLines: isCompact ? 1 : 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -87,6 +99,7 @@ class NoteCard extends StatelessWidget {
               note.content,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                fontSize: _userFontSize.sp,
               ),
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
@@ -119,6 +132,7 @@ class NoteCard extends StatelessWidget {
                         style: AppTextStyles.labelSmall.copyWith(
                           color: _getContrastingTextColor(_getNoteColor()),
                           fontWeight: FontWeight.w600,
+                          fontSize: (_userFontSize - 2).sp,
                         ),
                       ),
                     );
@@ -131,6 +145,7 @@ class NoteCard extends StatelessWidget {
                   _formatDate(note.createdAt ?? DateTime.now()),
                   style: AppTextStyles.labelSmall.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    fontSize: (_userFontSize - 2).sp,
                   ),
                 ),
               ],
@@ -170,7 +185,9 @@ class NoteCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         note.title,
-                        style: AppTextStyles.titleMedium,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontSize: (_userFontSize + 2).sp,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -193,6 +210,7 @@ class NoteCard extends StatelessWidget {
                   note.content,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    fontSize: (_userFontSize - 1).sp,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -220,7 +238,7 @@ class NoteCard extends StatelessWidget {
                               '#$tag',
                               style: AppTextStyles.labelSmall.copyWith(
                                 color: _getContrastingTextColor(_getNoteColor()),
-                                fontSize: 10.sp,
+                                fontSize: (_userFontSize - 3).sp,
                               ),
                             ),
                           );
@@ -231,6 +249,7 @@ class NoteCard extends StatelessWidget {
                       _formatDate(note.createdAt ?? DateTime.now()),
                       style: AppTextStyles.labelSmall.copyWith(
                         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                        fontSize: (_userFontSize - 2).sp,
                       ),
                     ),
                   ],

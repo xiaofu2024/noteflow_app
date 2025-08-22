@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:local_auth/local_auth.dart';
 
 import '../../../core/services/biometric_auth_service.dart';
@@ -19,7 +20,6 @@ class BiometricLockPage extends StatefulWidget {
   @override
   State<BiometricLockPage> createState() => _BiometricLockPageState();
 }
-
 class _BiometricLockPageState extends State<BiometricLockPage>
     with TickerProviderStateMixin {
   final BiometricAuthService _biometricService = BiometricAuthService();
@@ -33,6 +33,8 @@ class _BiometricLockPageState extends State<BiometricLockPage>
   List<BiometricType> _availableBiometrics = [];
   bool _isAuthenticating = false;
   String _statusMessage = '请验证身份';
+  String? _lastErrorMessage;
+  bool _showRetryButton = false;
 
   @override
   void initState() {
@@ -97,6 +99,8 @@ class _BiometricLockPageState extends State<BiometricLockPage>
     setState(() {
       _isAuthenticating = true;
       _statusMessage = '正在验证身份...';
+      _lastErrorMessage = null;
+      _showRetryButton = false;
     });
 
     debugPrint('开始生物识别验证');
@@ -106,6 +110,9 @@ class _BiometricLockPageState extends State<BiometricLockPage>
       cancelButtonText: '取消',
       fallbackButtonText: '使用密码',
     );
+
+    // 获取服务中的错误信息
+    _lastErrorMessage = _biometricService.lastError;
 
     switch (result) {
       case AuthenticationStatus.authenticated:
@@ -120,40 +127,48 @@ class _BiometricLockPageState extends State<BiometricLockPage>
         setState(() {
           _statusMessage = '验证已取消';
           _isAuthenticating = false;
+          _showRetryButton = true;
         });
-        if (widget.onCancel != null) {
-          widget.onCancel!();
-        }
         break;
         
       case AuthenticationStatus.error:
         setState(() {
-          _statusMessage = '验证失败，请重试';
+          _statusMessage = _lastErrorMessage ?? '验证失败，请重试';
           _isAuthenticating = false;
+          _showRetryButton = true;
         });
         _shakeAnimationController.forward().then((_) {
           _shakeAnimationController.reset();
         });
+        if (_lastErrorMessage != null && _lastErrorMessage!.isNotEmpty) {
+          SmartDialog.showToast(_lastErrorMessage!);
+        }
         break;
         
       case AuthenticationStatus.timeout:
         setState(() {
           _statusMessage = '验证超时，请重试';
           _isAuthenticating = false;
+          _showRetryButton = true;
         });
         break;
         
       case AuthenticationStatus.notAvailable:
         setState(() {
-          _statusMessage = '生物识别不可用';
+          _statusMessage = _lastErrorMessage ?? '生物识别不可用';
           _isAuthenticating = false;
+          _showRetryButton = false; // 不可用时不显示重试按钮
         });
+        if (_lastErrorMessage != null && _lastErrorMessage!.isNotEmpty) {
+          SmartDialog.showToast(_lastErrorMessage!);
+        }
         break;
         
       case AuthenticationStatus.unknown:
         setState(() {
           _statusMessage = '未知错误，请重试';
           _isAuthenticating = false;
+          _showRetryButton = true;
         });
         break;
     }
@@ -272,23 +287,27 @@ class _BiometricLockPageState extends State<BiometricLockPage>
               const Spacer(),
               
               // Action Buttons
-              if (!_isAuthenticating) ...[
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _performAuthentication,
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('重新验证'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 16.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
+              if (_isAuthenticating) ...[
+                const CircularProgressIndicator(),
+              ] else ...[
+                if (_showRetryButton || _biometricStatus == BiometricStatus.available) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _performAuthentication,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(_showRetryButton ? '重新验证' : '开始验证'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
                 
                 if (widget.onCancel != null) ...[
                   SizedBox(height: 12.h),
@@ -306,8 +325,6 @@ class _BiometricLockPageState extends State<BiometricLockPage>
                     ),
                   ),
                 ],
-              ] else ...[
-                const CircularProgressIndicator(),
               ],
               
               SizedBox(height: 24.h),

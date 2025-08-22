@@ -44,6 +44,8 @@
 	<string>需要允许录音功能来实现语音输入</string>
 	<key>NSCameraUsageDescription</key>
 	<string>需要摄像头来实现OCR功能</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>使用Face ID以安全地访问您的笔记</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
