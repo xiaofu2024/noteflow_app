@@ -54,7 +54,10 @@ class _NotesPageState extends State<NotesPage> {
   void _showFilterOptions() {
     showModalBottomSheet(
       context: context,
-      builder: (context) => const FilterBottomSheet(),
+      builder: (modalContext) => BlocProvider.value(
+        value: context.read<NotesBloc>(),
+        child: const FilterBottomSheet(),
+      ),
     );
   }
 
@@ -334,10 +337,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   @override
   void initState() {
     super.initState();
+    // Initialize with default values, will be updated in didChangeDependencies
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     // Get current sort and filter state from bloc
     final bloc = context.read<NotesBloc>();
-    _selectedSort = bloc.currentSortType;
-    _sortAscending = bloc.sortAscending;
+    if (mounted) {
+      setState(() {
+        _selectedSort = bloc.currentSortType;
+        _sortAscending = bloc.sortAscending;
+      });
+    }
   }
 
   void _applySorting(NotesSortType sortType) {
