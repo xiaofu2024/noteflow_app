@@ -30,7 +30,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _autoSyncEnabled = true;
   bool _notificationsEnabled = true;
   String _selectedTheme = 'System';
-  String _userName = 'NoteFlow用户';
+  String _userName = '盛华用户';
   String _userEmail = 'user@noteflow.com';
   double _fontSize = 14.0;
   String _noteViewMode = 'grid';

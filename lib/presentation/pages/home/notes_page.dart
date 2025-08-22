@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get_it/get_it.dart';
+import 'package:noteflow_app/core/constants/app_constants.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -141,11 +142,11 @@ class _NotesPageState extends State<NotesPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'NoteFlow',
+                              AppConstants.appName,
                               style: AppTextStyles.appBarTitle,
                             ),
                             Text(
-                              'Good morning! ☀️',
+                              'Hello! ☀️',
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                               ),

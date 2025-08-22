@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Noteflow App</string>
+	<string>$(CFBundleDisplayName)</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>noteflow_app</string>
+	<string>$(CFBundleName)</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -26,6 +26,14 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>需要摄像头来实现OCR功能</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>使用Face ID以安全地访问您的笔记</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>需要允许录音功能来实现语音输入</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>允许语音识别以实现语音转文本的功能</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -38,14 +46,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>允许语音识别以实现语音转文本的功能</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>需要允许录音功能来实现语音输入</string>
-	<key>NSCameraUsageDescription</key>
-	<string>需要摄像头来实现OCR功能</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>使用Face ID以安全地访问您的笔记</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

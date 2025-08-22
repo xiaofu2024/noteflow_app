@@ -1,0 +1,3 @@
+/* Simplified Chinese localization for app name */
+CFBundleDisplayName = "盛华笔记";
+CFBundleName = "盛华笔记";

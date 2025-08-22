@@ -1,6 +1,6 @@
 class AppConstants {
   // App Info
-  static const String appName = 'NoteFlow';
+  static const String appName = '盛华笔记';
   static const String appVersion = '1.0.0';
   
   // API Configuration
