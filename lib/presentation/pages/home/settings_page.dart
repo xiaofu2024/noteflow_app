@@ -545,7 +545,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       await _toggleBiometricLock(value);
                     },
                   ),
-                  _buildTile(
+                 /* _buildTile(
                     title: '密码保护笔记',
                     subtitle: '管理受密码保护的笔记',
                     onTap: () {
@@ -553,7 +553,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SnackBar(content: Text('密码管理功能开发中...')),
                       );
                     },
-                  ),
+                  ),*/
                   _buildTile(
                     title: '数据导出',
                     subtitle: '导出您的笔记和设置数据',
