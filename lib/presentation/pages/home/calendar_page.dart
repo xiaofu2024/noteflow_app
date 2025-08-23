@@ -23,10 +23,8 @@ class CalendarPageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GetIt.instance<NotesBloc>(),
-      child: const CalendarPage(),
-    );
+    // Use the existing NotesBloc from parent BlocProvider
+    return const CalendarPage();
   }
 }
 

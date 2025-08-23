@@ -48,7 +48,7 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => DeleteNoteUseCase(sl()));
   sl.registerLazySingleton(() => SearchNotesUseCase(sl()));
 
-  // BLoCs - Register as singleton to share state across pages
+  // BLoCs - Use singleton to share state across the app
   sl.registerLazySingleton(
     () => NotesBloc(
       getNotesUseCase: sl(),

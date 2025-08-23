@@ -36,7 +36,8 @@ class NoteEditorPageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use the singleton NotesBloc instance to share state
+    // Editor page needs its own BlocProvider since it's navigated via push
+    // and is not in the MainNavigationPage widget tree
     return BlocProvider.value(
       value: GetIt.instance<NotesBloc>(),
       child: NoteEditorPage(noteParam: note, isNewNote: isNewNote),

@@ -24,10 +24,8 @@ class NotesPageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GetIt.instance<NotesBloc>()..add(LoadNotesEvent()),
-      child: const NotesPage(),
-    );
+    // Use the existing NotesBloc from parent BlocProvider
+    return const NotesPage();
   }
 }
 
@@ -63,6 +61,10 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.resumed) {
       _loadViewMode();
+      // Reset filters and reload notes when app resumes (e.g., returning from settings)
+      // This ensures we see all notes and apply any setting changes
+      context.read<NotesBloc>().add(const FilterNotesEvent(NotesFilter()));
+      context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
     }
   }
 
@@ -95,21 +97,17 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      body: BlocListener<NotesBloc, NotesState>(
-        listener: (context, state) {
-          // Auto-refresh when notes are created, updated, deleted, pinned, or favorited
-          if (state is NoteCreated || 
-              state is NoteUpdated || 
-              state is NoteDeleted ||
-              state is NotePinToggled ||
-              state is NoteFavoriteToggled) {
-            // Force refresh to show latest changes
-            context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
-          }
-        },
-        child: BlocBuilder<NotesBloc, NotesState>(
+      body: BlocBuilder<NotesBloc, NotesState>(
         builder: (context, state) {
           if (state is NotesLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          
+          // Handle initial state - load notes if not loaded
+          if (state is NotesInitial) {
+            context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -187,7 +185,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
                               style: AppTextStyles.appBarTitle,
                             ),
                             Text(
-                              'Hello! ☀️',
+                              'Follow with your thought ☀️',
                               style: AppTextStyles.bodySmall.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                               ),
@@ -340,9 +338,12 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
             );
           }
           
-          return const SizedBox.shrink();
+          // Fallback for any unknown state - try to reload
+          context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         },
-      ),
       ),
       floatingActionButton: FloatingActionButton(
       onPressed: _createNewNote,

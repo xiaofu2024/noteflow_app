@@ -1,3 +1,4 @@
+import 'package:noteflow_app/core/constants/app_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserPreferencesService {
@@ -56,7 +57,7 @@ class UserPreferencesService {
   }
 
   // User profile
-  String get userName => _prefs.getString(_userNameKey) ?? 'NoteFlow用户';
+  String get userName => _prefs.getString(_userNameKey) ?? AppConstants.appName + '用户';
   
   Future<void> setUserName(String name) async {
     await _prefs.setString(_userNameKey, name);

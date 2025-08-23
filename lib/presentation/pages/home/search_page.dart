@@ -27,10 +27,8 @@ class SearchPageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GetIt.instance<NotesBloc>(),
-      child: const SearchPage(),
-    );
+    // Use the existing NotesBloc from parent BlocProvider
+    return const SearchPage();
   }
 }
 

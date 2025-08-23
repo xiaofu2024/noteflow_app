@@ -44,8 +44,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   }
 
   Future<void> _onLoadNotes(LoadNotesEvent event, Emitter<NotesState> emit) async {
-    if (state is NotesLoading) return;
-    
     emit(NotesLoading());
 
     final result = await getNotesUseCase(GetNotesParams(
@@ -91,6 +89,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       (failure) => emit(NotesError(failure.message)),
       (noteId) {
         emit(NoteCreated(noteId));
+        // Auto-refresh to show the new note
+        add(RefreshNotesEvent(event.note.userId));
       },
     );
   }
@@ -114,6 +114,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       (failure) => emit(NotesError(failure.message)),
       (_) {
         emit(NoteUpdated());
+        // Auto-refresh to show updated note
+        add(RefreshNotesEvent(event.note.userId));
       },
     );
   }
@@ -125,6 +127,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       (failure) => emit(NotesError(failure.message)),
       (_) {
         emit(NoteDeleted());
+        // Auto-refresh to remove deleted note
+        add(RefreshNotesEvent('user_1')); // TODO: Get from user session
       },
     );
   }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get_it/get_it.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../bloc/notes/notes_bloc.dart';
 import 'notes_page.dart';
 import 'calendar_page.dart';
 import 'search_page.dart';
@@ -100,12 +103,14 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        children: _pages,
-      ),
+    return BlocProvider(
+      create: (context) => GetIt.instance<NotesBloc>()..add(LoadNotesEvent(userId: 'user_1')),
+      child: Scaffold(
+        body: PageView(
+          controller: _pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          children: _pages,
+        ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -147,6 +152,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
             );
           }).toList(),
         ),
+      ),
       ),
     );
   }
