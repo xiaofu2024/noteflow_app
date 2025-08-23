@@ -36,8 +36,9 @@ class NoteEditorPageWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GetIt.instance<NotesBloc>(),
+    // Use the singleton NotesBloc instance to share state
+    return BlocProvider.value(
+      value: GetIt.instance<NotesBloc>(),
       child: NoteEditorPage(noteParam: note, isNewNote: isNewNote),
     );
   }
@@ -146,9 +147,6 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       );
       
       notesBloc.add(CreateNoteEvent(newNote));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('添加成功！')),
-      );
     } else {
       final updatedNote = widget.noteParam!.copyWith(
         title: title.isEmpty ? '无标题' : title,
@@ -160,12 +158,12 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
       );
       
       notesBloc.add(UpdateNoteEvent(updatedNote));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('更新成功！')),
-      );
     }
 
-    Navigator.of(context).pop();
+    // Don't navigate immediately, let BlocListener handle it
+    setState(() {
+      _hasChanges = false;
+    });
   }
 
   void _deleteNote() {
@@ -355,6 +353,26 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('笔记已删除'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is NoteCreated) {
+          // Close editor page and show success message
+          Navigator.of(context).pop();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('添加成功！'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state is NoteUpdated) {
+          // Close editor page and show success message
+          Navigator.of(context).pop();
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('更新成功！'),
               backgroundColor: Colors.green,
             ),
           );

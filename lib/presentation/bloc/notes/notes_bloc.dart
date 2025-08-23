@@ -90,8 +90,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     result.fold(
       (failure) => emit(NotesError(failure.message)),
       (noteId) {
-        // Reload notes after creation
-        add(RefreshNotesEvent(event.note.userId));
         emit(NoteCreated(noteId));
       },
     );
@@ -115,8 +113,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     result.fold(
       (failure) => emit(NotesError(failure.message)),
       (_) {
-        // Reload notes after update
-        add(RefreshNotesEvent(event.note.userId));
         emit(NoteUpdated());
       },
     );
@@ -128,8 +124,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     result.fold(
       (failure) => emit(NotesError(failure.message)),
       (_) {
-        // Reload notes after deletion
-        add(RefreshNotesEvent('user_1')); // TODO: Get from user session
         emit(NoteDeleted());
       },
     );
@@ -163,7 +157,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     result.fold(
       (failure) => emit(NotesError(failure.message)),
       (_) {
-        add(RefreshNotesEvent(event.userId));
         emit(NotePinToggled());
       },
     );
@@ -178,7 +171,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     result.fold(
       (failure) => emit(NotesError(failure.message)),
       (_) {
-        add(RefreshNotesEvent(event.userId));
         emit(NoteFavoriteToggled());
       },
     );

@@ -48,8 +48,8 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => DeleteNoteUseCase(sl()));
   sl.registerLazySingleton(() => SearchNotesUseCase(sl()));
 
-  // BLoCs
-  sl.registerFactory(
+  // BLoCs - Register as singleton to share state across pages
+  sl.registerLazySingleton(
     () => NotesBloc(
       getNotesUseCase: sl(),
       createNoteUseCase: sl(),

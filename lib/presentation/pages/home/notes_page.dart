@@ -78,10 +78,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
       MaterialPageRoute(
         builder: (context) => const NoteEditorPageWrapper(isNewNote: true),
       ),
-    ).then((_) {
-      // Refresh notes when returning from editor
-      context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
-    });
+    );
   }
 
   void _showFilterOptions() {
@@ -98,7 +95,19 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      body: BlocBuilder<NotesBloc, NotesState>(
+      body: BlocListener<NotesBloc, NotesState>(
+        listener: (context, state) {
+          // Auto-refresh when notes are created, updated, deleted, pinned, or favorited
+          if (state is NoteCreated || 
+              state is NoteUpdated || 
+              state is NoteDeleted ||
+              state is NotePinToggled ||
+              state is NoteFavoriteToggled) {
+            // Force refresh to show latest changes
+            context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
+          }
+        },
+        child: BlocBuilder<NotesBloc, NotesState>(
         builder: (context, state) {
           if (state is NotesLoading) {
             return const Center(
@@ -251,9 +260,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
                                       isNewNote: false,
                                     ),
                                   ),
-                                ).then((_) {
-                                  context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
-                                });
+                                );
                               },
                             ),
                           );
@@ -294,9 +301,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
                                       isNewNote: false,
                                     ),
                                   ),
-                                ).then((_) {
-                                  context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
-                                });
+                                );
                               },
                             );
                           },
@@ -317,9 +322,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
                                           isNewNote: false,
                                         ),
                                       ),
-                                    ).then((_) {
-                                      context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
-                                    });
+                                    );
                                   },
                                 ),
                               );
@@ -339,6 +342,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
           
           return const SizedBox.shrink();
         },
+      ),
       ),
       floatingActionButton: FloatingActionButton(
       onPressed: _createNewNote,
