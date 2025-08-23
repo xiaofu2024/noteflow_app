@@ -134,6 +134,8 @@ class _CalendarPageState extends State<CalendarPage> {
             listener: (context, state) {
               if (state is NotesLoaded) {
                 _buildNotesMap(state.notes);
+              } else if (state is NotesCalendarLoaded) {
+                _buildNotesMap(state.allNotes);
               }
             },
             child: SliverToBoxAdapter(child: Container()),
@@ -282,7 +284,11 @@ class _CalendarPageState extends State<CalendarPage> {
                 );
               }
               
-              final notes = state is NotesLoaded ? state.notes : <NoteEntity>[];
+              final notes = state is NotesLoaded 
+                  ? state.notes 
+                  : state is NotesCalendarLoaded 
+                      ? state.filteredNotes 
+                      : <NoteEntity>[];
               
               if (notes.isEmpty) {
                 return SliverToBoxAdapter(

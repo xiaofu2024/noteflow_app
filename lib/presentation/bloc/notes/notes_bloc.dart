@@ -44,6 +44,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   }
 
   Future<void> _onLoadNotes(LoadNotesEvent event, Emitter<NotesState> emit) async {
+    print('🔍 LoadNotesEvent: userId=${event.userId}, limit=${event.limit}, offset=${event.offset}');
+    print('🔍 Previous state was: ${state.runtimeType}');
     emit(NotesLoading());
 
     final result = await getNotesUseCase(GetNotesParams(
@@ -55,14 +57,27 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     ));
 
     result.fold(
-      (failure) => emit(NotesError(failure.message)),
+      (failure) => {
+        print('❌ LoadNotes failed: ${failure.message}'),
+        emit(NotesError(failure.message))
+      },
       (notes) {
+        print('📊 Raw notes loaded: ${notes.length} notes');
+        print('🔧 Current filter: showPinned=${_currentFilter.showPinned}, showFavorites=${_currentFilter.showFavorites}');
+        
         final processedNotes = _applySortAndFilter(notes);
+        print('📊 After filter/sort: ${processedNotes.length} notes');
+        
+        final pinnedNotes = processedNotes.where((note) => note.isPinned).toList();
+        final recentNotes = processedNotes.where((note) => !note.isPinned).toList();
+        
+        print('📌 Pinned notes: ${pinnedNotes.length}');
+        print('📝 Recent notes: ${recentNotes.length}');
         
         emit(NotesLoaded(
           notes: processedNotes,
-          pinnedNotes: processedNotes.where((note) => note.isPinned).toList(),
-          recentNotes: processedNotes.where((note) => !note.isPinned).toList(),
+          pinnedNotes: pinnedNotes,
+          recentNotes: recentNotes,
         ));
       },
     );
@@ -181,11 +196,12 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
   }
 
   Future<void> _onRefreshNotes(RefreshNotesEvent event, Emitter<NotesState> emit) async {
-    add(LoadNotesEvent(userId: event.userId));
+    print('🔄 RefreshNotesEvent: userId=${event.userId}');
+    add(LoadNotesEvent(userId: event.userId)); // From: RefreshNotesEvent
   }
 
   Future<void> _onLoadNotesByDate(LoadNotesByDateEvent event, Emitter<NotesState> emit) async {
-    emit(NotesLoading());
+    print('📅 LoadNotesByDateEvent: date=${event.date}, userId=${event.userId}');
 
     final result = await getNotesUseCase(GetNotesParams(
       userId: event.userId,
@@ -203,18 +219,24 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           return createdAt.isAfter(startOfDay) && createdAt.isBefore(endOfDay);
         }).toList();
 
-        final processedNotes = _applySortAndFilter(notesForDate);
+        final processedFilteredNotes = _applySortAndFilter(notesForDate);
+        final processedAllNotes = _applySortAndFilter(notes);
 
-        emit(NotesLoaded(
-          notes: processedNotes,
-          pinnedNotes: processedNotes.where((note) => note.isPinned).toList(),
-          recentNotes: processedNotes.where((note) => !note.isPinned).toList(),
+        print('📅 LoadNotesByDate result: ${processedFilteredNotes.length} notes for date ${event.date}');
+        print('📅 Preserving ${processedAllNotes.length} total notes in calendar state');
+        
+        // Emit calendar-specific state that doesn't interfere with main note list
+        emit(NotesCalendarLoaded(
+          allNotes: processedAllNotes,
+          filteredNotes: processedFilteredNotes,
+          selectedDate: event.date,
         ));
       },
     );
   }
 
   Future<void> _onFilterNotes(FilterNotesEvent event, Emitter<NotesState> emit) async {
+    print('🔍 FilterNotesEvent: showPinned=${event.filter.showPinned}, showFavorites=${event.filter.showFavorites}');
     _currentFilter = event.filter;
     
     if (state is NotesLoaded) {
@@ -222,6 +244,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       final filteredNotes = _applyFilterToNotes(currentState.notes);
       final sortedNotes = _applySortToNotes(filteredNotes);
       
+      print('🔧 FilterNotesEvent result: ${sortedNotes.length} notes after filter');
       emit(NotesLoaded(
         notes: sortedNotes,
         pinnedNotes: sortedNotes.where((note) => note.isPinned).toList(),
@@ -229,11 +252,13 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       ));
     } else {
       // Reload notes with new filter
-      add(const LoadNotesEvent(userId: 'user_1'));
+      print('⚠️  FilterNotesEvent: State is not NotesLoaded (${state.runtimeType}), triggering reload');
+      add(const LoadNotesEvent(userId: 'user_1')); // From: FilterNotesEvent fallback
     }
   }
 
   Future<void> _onSortNotes(SortNotesEvent event, Emitter<NotesState> emit) async {
+    print('📊 SortNotesEvent: sortType=${event.sortType}, ascending=${event.ascending}');
     _currentSortType = event.sortType;
     _sortAscending = event.ascending;
     
@@ -241,6 +266,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       final currentState = state as NotesLoaded;
       final sortedNotes = _applySortToNotes(currentState.notes);
       
+      print('📊 SortNotesEvent result: ${sortedNotes.length} notes after sort');
       emit(NotesLoaded(
         notes: sortedNotes,
         pinnedNotes: sortedNotes.where((note) => note.isPinned).toList(),

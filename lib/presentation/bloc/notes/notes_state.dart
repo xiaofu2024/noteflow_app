@@ -64,3 +64,18 @@ class NotesSearchResults extends NotesState {
 }
 
 class NotesSearchEmpty extends NotesState {}
+
+class NotesCalendarLoaded extends NotesState {
+  final List<NoteEntity> allNotes;
+  final List<NoteEntity> filteredNotes;
+  final DateTime selectedDate;
+
+  const NotesCalendarLoaded({
+    required this.allNotes,
+    required this.filteredNotes,
+    required this.selectedDate,
+  });
+
+  @override
+  List<Object> get props => [allNotes, filteredNotes, selectedDate];
+}

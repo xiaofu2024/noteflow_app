@@ -59,12 +59,20 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
+    print('📱 App lifecycle state changed: $state');
+    print('📱 Current time: ${DateTime.now()}');
+    print('📱 Widget is mounted: $mounted');
+    
     if (state == AppLifecycleState.resumed) {
+      print('🔄 App resumed - resetting filters and reloading notes');
       _loadViewMode();
       // Reset filters and reload notes when app resumes (e.g., returning from settings)
       // This ensures we see all notes and apply any setting changes
+      // Use a delay to avoid race condition between FilterEvent and LoadEvent
       context.read<NotesBloc>().add(const FilterNotesEvent(NotesFilter()));
-      context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
+      Future.delayed(Duration.zero, () {
+        context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1')); // From: App resumed
+      });
     }
   }
 
@@ -107,7 +115,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
           
           // Handle initial state - load notes if not loaded
           if (state is NotesInitial) {
-            context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
+            context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1')); // From: NotesInitial
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -147,8 +155,16 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
           }
           
           if (state is NotesLoaded) {
-            final pinnedNotes = state.notes.where((note) => note.isPinned).toList();
-            final recentNotes = state.notes.where((note) => !note.isPinned).toList();
+            final pinnedNotes = state.pinnedNotes;
+            final recentNotes = state.recentNotes;
+            
+            print('🎨 UI rendering: pinnedNotes.length=${pinnedNotes.length}, recentNotes.length=${recentNotes.length}');
+            print('🎨 Grid view mode: $_isGridView');
+            print('🎨 State notes: ${state.notes.length}');
+            print('🎨 State pinnedNotes: ${state.pinnedNotes.length}');
+            print('🎨 State recentNotes: ${state.recentNotes.length}');
+            print('🎨 Rendering time: ${DateTime.now()}');
+            print('🎨 Stack trace: ${StackTrace.current}');
             
             return CustomScrollView(
               controller: _scrollController,
@@ -338,8 +354,17 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
             );
           }
           
+          // Handle calendar-filtered state - reload full note list for main page
+          if (state is NotesCalendarLoaded) {
+            print('📅 NotesCalendarLoaded detected on notes page - reloading full notes');
+            context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1')); // From: NotesCalendarLoaded on main page
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          
           // Fallback for any unknown state - try to reload
-          context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1'));
+          context.read<NotesBloc>().add(LoadNotesEvent(userId: 'user_1')); // From: Unknown state fallback
           return const Center(
             child: CircularProgressIndicator(),
           );

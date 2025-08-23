@@ -71,6 +71,19 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       return;
     }
 
+    // If switching to notes tab (index 0), ensure we have the full note list
+    if (index == 0) {
+      final notesBloc = GetIt.instance<NotesBloc>();
+      final currentState = notesBloc.state;
+      
+      // If current state is calendar-filtered or not loaded, reload all notes
+      if (currentState is! NotesLoaded || 
+          (currentState is NotesCalendarLoaded)) {
+        print('🔄 Restoring full note list when switching to notes tab');
+        notesBloc.add(LoadNotesEvent(userId: 'user_1'));
+      }
+    }
+
     setState(() {
       _currentIndex = index;
     });
