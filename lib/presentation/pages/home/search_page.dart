@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/services/user_preferences_service.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../../bloc/notes/notes_bloc.dart';
 import '../../widgets/note_card.dart';
@@ -38,20 +39,25 @@ class _SearchPageState extends State<SearchPage> {
   final FocusNode _searchFocusNode = FocusNode();
   bool _isSearching = false;
   String _searchQuery = '';
+  List<String> _recentSearches = [];
 
-  // Mock search history
-  final List<String> _recentSearches = [
-    '会议记录',
-    '项目想法',
-    '旅行计划',
-    '收据',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadSearchHistory();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _loadSearchHistory() {
+    setState(() {
+      _recentSearches = UserPreferencesService.instance.searchHistory;
+    });
   }
 
   void _performSearch(String query) {
@@ -61,6 +67,11 @@ class _SearchPageState extends State<SearchPage> {
     });
     
     if (query.trim().isNotEmpty) {
+      // Save to search history
+      UserPreferencesService.instance.addSearchHistory(query.trim()).then((_) {
+        _loadSearchHistory();
+      });
+      
       context.read<NotesBloc>().add(SearchNotesEvent(
         query: query.trim(),
         userId: 'user_1',
@@ -299,6 +310,19 @@ class _SearchPageState extends State<SearchPage> {
                       Text(
                         search,
                         style: AppTextStyles.bodySmall,
+                      ),
+                      SizedBox(width: 4.w),
+                      GestureDetector(
+                        onTap: () {
+                          UserPreferencesService.instance.removeSearchHistory(search).then((_) {
+                            _loadSearchHistory();
+                          });
+                        },
+                        child: Icon(
+                          Icons.close_rounded,
+                          size: 14.sp,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.4),
+                        ),
                       ),
                     ],
                   ),

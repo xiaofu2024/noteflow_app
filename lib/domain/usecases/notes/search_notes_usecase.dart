@@ -13,7 +13,7 @@ class SearchNotesUseCase {
       return const Right([]);
     }
 
-    if (params.query.trim().length < 2) {
+    if (params.query.trim().length < 1) {
       return Left(ValidationFailure('Search query must be at least 2 characters'));
     }
 

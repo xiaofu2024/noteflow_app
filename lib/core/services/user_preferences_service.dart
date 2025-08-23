@@ -10,6 +10,7 @@ class UserPreferencesService {
   static const String _fontSizeKey = 'font_size';
   static const String _noteViewModeKey = 'note_view_mode';
   static const String _defaultNoteColorKey = 'default_note_color';
+  static const String _searchHistoryKey = 'search_history';
 
   late SharedPreferences _prefs;
   
@@ -92,6 +93,32 @@ class UserPreferencesService {
     }
   }
 
+  // Search history
+  List<String> get searchHistory => _prefs.getStringList(_searchHistoryKey) ?? [];
+  
+  Future<void> addSearchHistory(String query) async {
+    List<String> history = searchHistory;
+    // Remove if already exists to avoid duplicates
+    history.removeWhere((item) => item.toLowerCase() == query.toLowerCase());
+    // Add to the beginning
+    history.insert(0, query);
+    // Keep only last 10 searches
+    if (history.length > 10) {
+      history = history.take(10).toList();
+    }
+    await _prefs.setStringList(_searchHistoryKey, history);
+  }
+
+  Future<void> removeSearchHistory(String query) async {
+    List<String> history = searchHistory;
+    history.removeWhere((item) => item.toLowerCase() == query.toLowerCase());
+    await _prefs.setStringList(_searchHistoryKey, history);
+  }
+
+  Future<void> clearSearchHistory() async {
+    await _prefs.remove(_searchHistoryKey);
+  }
+
   // Clear all preferences (for logout or reset)
   Future<void> clearAll() async {
     await _prefs.clear();
@@ -109,6 +136,7 @@ class UserPreferencesService {
       'font_size': fontSize,
       'note_view_mode': noteViewMode,
       'default_note_color': defaultNoteColor,
+      'search_history': searchHistory,
     };
   }
 
@@ -140,6 +168,12 @@ class UserPreferencesService {
     }
     if (preferences.containsKey('default_note_color')) {
       await setDefaultNoteColor(preferences['default_note_color']);
+    }
+    if (preferences.containsKey('search_history')) {
+      final history = preferences['search_history'];
+      if (history is List) {
+        await _prefs.setStringList(_searchHistoryKey, history.cast<String>());
+      }
     }
   }
 }

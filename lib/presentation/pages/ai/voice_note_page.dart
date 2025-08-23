@@ -97,12 +97,16 @@ class _VoiceNotePageState extends State<VoiceNotePage>
         onResult: (text) {
           setState(() {
             _recognizedText = text;
-            _statusText = '正在识别语音...';
+            // 根据是否还在监听状态来决定显示文本
+            if (_isListening) {
+              _statusText = '正在识别语音...';
+            }
           });
         },
         onError: (error) {
           setState(() {
             _statusText = '语音识别错误: $error';
+            _isListening = false;
           });
           _stopListening();
         },
