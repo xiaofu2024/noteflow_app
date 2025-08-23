@@ -13,6 +13,7 @@ import 'user_preferences_service.dart';
 import 'theme_manager.dart';
 import 'biometric_auth_service.dart';
 import 'data_export_service.dart';
+import 'note_color_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -23,6 +24,9 @@ Future<void> initializeDependencies() async {
   // Services
   sl.registerLazySingleton<UserPreferencesService>(() => UserPreferencesService.instance);
   await sl<UserPreferencesService>().init();
+  
+  sl.registerLazySingleton<NoteColorService>(() => NoteColorService.instance);
+  await sl<NoteColorService>().init();
   
   sl.registerLazySingleton<ThemeManager>(() => ThemeManager(sl()));
   sl.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());

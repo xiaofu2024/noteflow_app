@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter pub:*)",
+      "Bash(flutter build:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/xuefeng/Desktop/xuefeng/noteflow_app"
+    ]
+  }
+}

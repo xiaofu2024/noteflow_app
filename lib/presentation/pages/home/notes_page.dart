@@ -164,7 +164,7 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
             print('🎨 State pinnedNotes: ${state.pinnedNotes.length}');
             print('🎨 State recentNotes: ${state.recentNotes.length}');
             print('🎨 Rendering time: ${DateTime.now()}');
-            print('🎨 Stack trace: ${StackTrace.current}');
+            //print('🎨 Stack trace: ${StackTrace.current}');
             
             return CustomScrollView(
               controller: _scrollController,

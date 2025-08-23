@@ -7,8 +7,10 @@ import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/services/user_preferences_service.dart';
+import '../../../core/services/note_color_service.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../../bloc/notes/notes_bloc.dart';
+import '../../widgets/note_color_picker.dart';
 
 class NoteEditorPage extends StatefulWidget {
   final NoteEntity? noteParam;
@@ -55,25 +57,12 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
   bool _isPinned = false;
   int? _selectedColor;
   bool _hasChanges = false;
-
-  final List<int> _colorOptions = [
-    0xFFE91E63,
-    0xFF4CAF50,
-    0xFF2196F3,
-    0xFFFF9800,
-    0xFF9C27B0,
-    0xFF009688,
-    0xFFFFC107,
-    0xFFFFFFFF, // White
-    0xFFFFEBEE, // Pink
-    0xFFE3F2FD, // Blue
-    0xFFE8F5E8, // Green
-    0xFFFFF3E0, // Orange
-  ];
+  late NoteColorService _colorService;
 
   @override
   void initState() {
     super.initState();
+    _colorService = GetIt.instance<NoteColorService>();
     _initializeControllers();
     _setupListeners();
   }
@@ -201,72 +190,53 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
     });
   }
 
-  void _showColorPicker() {
-    showModalBottomSheet(
+  Future<void> _showColorPicker() async {
+    final selectedColor = await showDialog<int?>(
       context: context,
-      builder: (context) => Container(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '选择笔记颜色',
-              style: AppTextStyles.titleMedium,
-            ),
-            SizedBox(height: 16.h),
-            GridView.builder(
-              shrinkWrap: true,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 12.w,
-                mainAxisSpacing: 12.h,
-              ),
-              itemCount: _colorOptions.length,
-              itemBuilder: (context, index) {
-                final color = _colorOptions[index];
-                final isSelected = _selectedColor == color;
-                
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedColor = color;
-                      _hasChanges = true;
-                    });
-                    Navigator.of(context).pop();
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color(color),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : Colors.grey.shade300,
-                        width: isSelected ? 3 : 1,
-                      ),
-                      borderRadius: BorderRadius.circular(12.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: isSelected
-                        ? Icon(
-                            Icons.check_rounded,
-                            color: AppColors.primary,
-                            size: 24.sp,
-                          )
-                        : null,
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 16.h),
-          ],
-        ),
+      builder: (context) => NoteColorPickerDialog(
+        initialColor: _selectedColor,
+        title: '选择笔记颜色',
+        showDefaultOption: true,
       ),
     );
+
+    if (selectedColor != _selectedColor) {
+      setState(() {
+        _selectedColor = selectedColor;
+        _hasChanges = true;
+      });
+      
+      // Save the color preference for this note if it's not a new note
+      if (!widget.isNewNote && widget.noteParam != null) {
+        await _colorService.setNoteColor(widget.noteParam!.id, selectedColor);
+      }
+    }
+  }
+
+  void _showTagSuggestions() {
+    if (_tags.isNotEmpty) {
+      final firstTag = _tags.first;
+      final suggestedColor = _colorService.getSuggestedColorForTag(firstTag);
+      
+      if (suggestedColor != null && suggestedColor != _selectedColor) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '建议使用${NoteColorUtils.getColorName(suggestedColor)}标签"$firstTag"',
+            ),
+            action: SnackBarAction(
+              label: '应用',
+              onPressed: () {
+                setState(() {
+                  _selectedColor = suggestedColor;
+                  _hasChanges = true;
+                });
+              },
+            ),
+          ),
+        );
+      }
+    }
   }
 
   void _addTag() {
@@ -296,6 +266,11 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
                   setState(() {
                     _tags.add(tag);
                     _hasChanges = true;
+                  });
+                  
+                  // Show color suggestion for the new tag
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _showTagSuggestions();
                   });
                 }
                 Navigator.of(context).pop();

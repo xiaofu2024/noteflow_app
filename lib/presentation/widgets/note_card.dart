@@ -5,7 +5,9 @@ import 'package:get_it/get_it.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/services/user_preferences_service.dart';
+import '../../core/services/note_color_service.dart';
 import '../../domain/entities/note_entity.dart';
+import 'note_color_picker.dart';
 
 class NoteCard extends StatelessWidget {
   final NoteEntity note;
@@ -263,32 +265,48 @@ class NoteCard extends StatelessWidget {
   }
 
   Color _getNoteColor() {
-    if (note.color != null) {
-      return Color(note.color!);
+    try {
+      final colorService = GetIt.instance<NoteColorService>();
+      
+      // First check if this specific note has a color
+      final specificColor = colorService.getNoteColor(note.id);
+      if (specificColor != null) {
+        return Color(specificColor);
+      }
+      
+      // Then check if note entity has a color
+      if (note.color != null) {
+        return Color(note.color!);
+      }
+      
+      // Check for default color in settings
+      final defaultColor = colorService.defaultNoteColor;
+      if (defaultColor != null) {
+        return Color(defaultColor);
+      }
+      
+      // Get suggested color based on tags
+      if (note.tags.isNotEmpty) {
+        final suggestedColor = colorService.getSuggestedColorForTag(note.tags.first);
+        if (suggestedColor != null) {
+          return Color(suggestedColor);
+        }
+      }
+      
+      // Fallback to default color based on hash
+      final colors = AppColors.noteCategoryColors;
+      final index = note.id.hashCode % colors.length;
+      return colors[index];
+    } catch (e) {
+      // Fallback if services are not available
+      final colors = AppColors.noteCategoryColors;
+      final index = note.id.hashCode % colors.length;
+      return colors[index];
     }
-    // Default colors based on color index or fallback
-    final colors = AppColors.noteCategoryColors;
-    final index = note.id.hashCode % colors.length;
-    return colors[index];
   }
 
   Color _getContrastingTextColor(Color backgroundColor) {
-    // Calculate luminance to determine if we need light or dark text
-    final luminance = backgroundColor.computeLuminance();
-    
-    // If the background is light, use dark text; if dark, use light text
-    if (luminance > 0.5) {
-      // Use a darker version of the background color for text
-      return Color.fromRGBO(
-        (backgroundColor.red * 0.6).round(),
-        (backgroundColor.green * 0.6).round(),
-        (backgroundColor.blue * 0.6).round(),
-        1.0,
-      );
-    } else {
-      // Use white text for dark backgrounds
-      return Colors.white;
-    }
+    return NoteColorUtils.getContrastColor(backgroundColor);
   }
 
   String _formatDate(DateTime date) {
