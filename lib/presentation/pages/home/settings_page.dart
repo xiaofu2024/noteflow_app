@@ -7,9 +7,11 @@ import '../../../core/services/user_preferences_service.dart';
 import '../../../core/services/theme_manager.dart';
 import '../../../core/services/biometric_auth_service.dart';
 import '../../../core/services/data_export_service.dart';
+import '../../../core/services/note_color_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../settings/webview_page.dart';
+import '../../widgets/note_color_picker.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -23,6 +25,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late ThemeManager _themeManager;
   late BiometricAuthService _biometricService;
   late DataExportService _exportService;
+  late NoteColorService _colorService;
   bool _isLoading = true;
   
   // Settings values
@@ -34,6 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _userEmail = 'user@noteflow.com';
   double _fontSize = 14.0;
   String _noteViewMode = 'grid';
+  int? _defaultNoteColor;
 
   @override
   void initState() {
@@ -42,6 +46,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _themeManager = GetIt.instance<ThemeManager>();
     _biometricService = GetIt.instance<BiometricAuthService>();
     _exportService = GetIt.instance<DataExportService>();
+    _colorService = GetIt.instance<NoteColorService>();
     _loadSettings();
   }
 
@@ -55,6 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _userEmail = _prefsService.userEmail;
       _fontSize = _prefsService.fontSize;
       _noteViewMode = _prefsService.noteViewMode;
+      _defaultNoteColor = _colorService.defaultNoteColor;
       _isLoading = false;
     });
   }
@@ -585,14 +591,21 @@ class _SettingsPageState extends State<SettingsPage> {
                     },
                   ),
                   _buildTile(
-                    title: '笔记颜色',
-                    subtitle: '自定义笔记分类颜色',
+                    title: '默认笔记颜色',
+                    subtitle: _defaultNoteColor != null 
+                        ? NoteColorUtils.getColorName(_defaultNoteColor)
+                        : '跟随系统',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('颜色自定义功能开发中...')),
-                      );
+                      _showNoteColorDialog();
                     },
                   ),
+                  // _buildTile(
+                  //   title: '颜色预设管理',
+                  //   subtitle: '查看和管理笔记颜色预设',
+                  //   onTap: () {
+                  //     _showColorPresetsDialog();
+                  //   },
+                  // ),
                 ],
               ),
 
@@ -957,6 +970,107 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+
+  Future<void> _showNoteColorDialog() async {
+    final selectedColor = await showDialog<int?>(
+      context: context,
+      builder: (context) => NoteColorPickerDialog(
+        initialColor: _defaultNoteColor,
+        title: '默认笔记颜色',
+        showDefaultOption: true,
+      ),
+    );
+
+    if (selectedColor != null || selectedColor == null) {
+      await _colorService.setDefaultNoteColor(selectedColor);
+      setState(() {
+        _defaultNoteColor = selectedColor;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              selectedColor != null 
+                  ? '已设置默认颜色为${NoteColorUtils.getColorName(selectedColor)}'
+                  : '已重置为默认颜色'
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showColorPresetsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('颜色预设管理', style: AppTextStyles.titleMedium),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400.h,
+            child: _buildColorPresetsList(),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('关闭'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildColorPresetsList() {
+    final presets = _colorService.getColorPresets();
+    final stats = _colorService.getColorUsageStats();
+    
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: presets.length,
+      itemBuilder: (context, index) {
+        final entry = presets.entries.elementAt(index);
+        final preset = ColorPreset.fromJson(entry.key, entry.value);
+        final usageCount = stats[preset.color] ?? 0;
+        
+        return ListTile(
+          leading: Container(
+            width: 32.w,
+            height: 32.h,
+            decoration: BoxDecoration(
+              color: preset.colorValue,
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(
+                color: Colors.black.withOpacity(0.2),
+              ),
+            ),
+          ),
+          title: Text(
+            preset.name,
+            style: AppTextStyles.bodyMedium,
+          ),
+          subtitle: Text(
+            '$usageCount 个笔记使用',
+            style: AppTextStyles.bodySmall.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () {
+              // TODO: 实现编辑颜色预设功能
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('编辑预设功能开发中...')),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   void _showContactDialog() {
     showDialog(
