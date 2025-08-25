@@ -5,7 +5,9 @@
       "Bash(flutter analyze:*)",
       "Bash(flutter build:*)",
       "Bash(mkdir:*)",
-      "Bash(flutter test:*)"
+      "Bash(flutter test:*)",
+      "Bash(flutter pub:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

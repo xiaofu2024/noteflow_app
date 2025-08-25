@@ -171,10 +171,11 @@ class _SplashPageState extends State<SplashPage>
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.edit_note_rounded,
-                        size: 60.sp,
-                        color: Colors.white,
+                      child: Image.asset(
+                        "assets/images/icon-app-small.png",
+                        width: 60,
+                        height: 60,
+                       // color: Colors.white,
                       ),
                     ),
                   );

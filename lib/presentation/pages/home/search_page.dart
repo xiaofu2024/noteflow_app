@@ -43,6 +43,9 @@ class _SearchPageState extends State<SearchPage> {
   void initState() {
     super.initState();
     _loadSearchHistory();
+    _searchController.addListener(() {
+      setState(() {}); // Update UI for clear button visibility
+    });
   }
 
   @override
@@ -124,7 +127,6 @@ class _SearchPageState extends State<SearchPage> {
                   TextField(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
-                    onChanged: _performSearch,
                     onSubmitted: _performSearch,
                     decoration: InputDecoration(
                       hintText: localization.S.of(context).searchNotes,
@@ -133,7 +135,7 @@ class _SearchPageState extends State<SearchPage> {
                         size: 24.sp,
                         color: AppColors.primary,
                       ),
-                      suffixIcon: _searchQuery.isNotEmpty
+                      suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
                               onPressed: _clearSearch,
                               icon: Icon(

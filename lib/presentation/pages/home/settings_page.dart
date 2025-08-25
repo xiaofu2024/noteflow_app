@@ -93,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('只导出笔记内容'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportNotesOnly();
+                  _showNotesExportFormatDialog();
                 },
               ),
               ListTile(
@@ -103,6 +103,15 @@ class _SettingsPageState extends State<SettingsPage> {
                 onTap: () {
                   Navigator.pop(context);
                   _showExportFormatDialog();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.bug_report_rounded),
+                title: const Text('文件系统诊断'),
+                subtitle: const Text('检查文件导出权限'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showFileSystemDiagnosis();
                 },
               ),
             ],
@@ -129,8 +138,8 @@ class _SettingsPageState extends State<SettingsPage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.code_rounded),
-                title: const Text('JSON格式'),
-                subtitle: const Text('结构化数据，便于程序处理'),
+                title: const Text('JSON格式 ✓'),
+                subtitle: const Text('结构化数据，可用于导入备份'),
                 onTap: () {
                   Navigator.pop(context);
                   _exportAllData(format: ExportFormat.json);
@@ -139,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: const Icon(Icons.description_rounded),
                 title: const Text('文本格式'),
-                subtitle: const Text('纯文本，便于阅读'),
+                subtitle: const Text('纯文本，便于阅读（仅用于查看）'),
                 onTap: () {
                   Navigator.pop(context);
                   _exportAllData(format: ExportFormat.txt);
@@ -148,11 +157,90 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: const Icon(Icons.table_chart_rounded),
                 title: const Text('CSV格式'),
-                subtitle: const Text('表格数据，便于Excel处理'),
+                subtitle: const Text('表格数据，便于Excel处理（仅用于查看）'),
                 onTap: () {
                   Navigator.pop(context);
                   _exportAllData(format: ExportFormat.csv);
                 },
+              ),
+              SizedBox(height: 16.h),
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  '💡 提示：只有JSON格式可以用于恢复备份，文本和CSV格式仅用于查看和分享',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showNotesExportFormatDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('选择导出格式', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.code_rounded),
+                title: const Text('JSON格式 ✓'),
+                subtitle: const Text('结构化数据，可用于导入备份'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportNotesOnly(format: ExportFormat.json);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.description_rounded),
+                title: const Text('文本格式'),
+                subtitle: const Text('纯文本，便于阅读（仅用于查看）'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportNotesOnly(format: ExportFormat.txt);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.table_chart_rounded),
+                title: const Text('CSV格式'),
+                subtitle: const Text('表格数据，便于Excel处理（仅用于查看）'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _exportNotesOnly(format: ExportFormat.csv);
+                },
+              ),
+              SizedBox(height: 16.h),
+              Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  '💡 提示：只有JSON格式可以用于恢复备份，文本和CSV格式仅用于查看和分享',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.primary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),
@@ -202,8 +290,9 @@ class _SettingsPageState extends State<SettingsPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('数据导出失败'),
+              content: Text('数据导出失败，请检查设备存储空间或权限'),
               backgroundColor: Colors.red,
+              duration: Duration(seconds: 5),
             ),
           );
         }
@@ -217,13 +306,14 @@ class _SettingsPageState extends State<SettingsPage> {
           SnackBar(
             content: Text('导出失败: ${e.toString()}'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
     }
   }
 
-  Future<void> _exportNotesOnly() async {
+  Future<void> _exportNotesOnly({ExportFormat format = ExportFormat.json}) async {
     try {
       // 显示加载对话框
       showDialog(
@@ -240,7 +330,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       );
 
-      final result = await _exportService.exportNotesOnly();
+      final result = await _exportService.exportNotesOnly(format: format);
       
       // 关闭加载对话框
       if (mounted) Navigator.pop(context);
@@ -258,8 +348,9 @@ class _SettingsPageState extends State<SettingsPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('笔记导出失败'),
+              content: Text('笔记导出失败，请检查设备存储空间或权限'),
               backgroundColor: Colors.red,
+              duration: Duration(seconds: 5),
             ),
           );
         }
@@ -273,6 +364,7 @@ class _SettingsPageState extends State<SettingsPage> {
           SnackBar(
             content: Text('导出失败: ${e.toString()}'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -616,7 +708,7 @@ class _SettingsPageState extends State<SettingsPage> {
               _buildSettingsSection(
                 title: '☁️ 同步与备份',
                 children: [
-                  _buildSwitchTile(
+                  /*_buildSwitchTile(
                     title: '云端同步',
                     subtitle: '自动在设备间同步',
                     value: _autoSyncEnabled,
@@ -626,14 +718,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         _autoSyncEnabled = value;
                       });
                     },
-                  ),
+                  ),*/
                   _buildTile(
-                    title: '立即备份',
-                    subtitle: '手动备份您的数据',
+                    title: '恢复备份',
+                    subtitle: '从备份文件恢复数据',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('备份已开始...')),
-                      );
+                      _showRestoreBackupDialog();
                     },
                   ),
                   _buildTile(
@@ -1125,5 +1215,383 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       },
     );
+  }
+
+  Future<void> _showRestoreBackupDialog() async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('恢复备份', style: AppTextStyles.titleMedium),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.restore_rounded),
+                title: const Text('恢复完整备份'),
+                subtitle: const Text('恢复笔记和设置数据'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _restoreFullBackup();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.note_add_rounded),
+                title: const Text('仅恢复笔记'),
+                subtitle: const Text('只恢复笔记内容'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _restoreNotesOnly();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_rounded),
+                title: const Text('仅恢复设置'),
+                subtitle: const Text('只恢复应用设置和偏好'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _restoreSettingsOnly();
+                },
+              ),
+              SizedBox(height: 16.h),
+              Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      '⚠️ 重要提醒',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: Colors.orange.shade700,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      '• 恢复备份会覆盖现有数据，建议先导出当前数据\n• 仅支持导入JSON格式的备份文件\n• 文本和CSV格式的导出文件无法导入\n• 可选择恢复完整备份、仅笔记或仅设置',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.orange.shade600,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _restoreFullBackup() async {
+    // 显示确认对话框
+    final confirmed = await _showRestoreConfirmDialog(
+      title: '确认恢复完整备份',
+      content: '这将替换您现有的所有笔记和设置。此操作无法撤销。',
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // 显示加载对话框
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('正在恢复备份...'),
+            ],
+          ),
+        ),
+      );
+
+      final result = await _exportService.pickAndImportBackupFile(
+        replaceExisting: true,
+        importSettings: true,
+        importNotes: true,
+      );
+
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        final message = _exportService.getImportResultDescription(result);
+        final isSuccess = result == ImportResult.success;
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
+          ),
+        );
+
+        if (isSuccess) {
+          // 重新加载设置以反映导入的更改
+          _loadSettings();
+        }
+      }
+    } catch (e) {
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('恢复失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _restoreNotesOnly() async {
+    // 显示确认对话框
+    final confirmed = await _showRestoreConfirmDialog(
+      title: '确认恢复笔记',
+      content: '这将添加或替换您的笔记数据。重复的笔记会被覆盖。',
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // 显示加载对话框
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('正在恢复笔记...'),
+            ],
+          ),
+        ),
+      );
+
+      final result = await _exportService.pickAndImportNotesFile(
+        replaceExisting: true,
+      );
+
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        final message = _exportService.getImportResultDescription(result);
+        final isSuccess = result == ImportResult.success;
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('恢复失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _restoreSettingsOnly() async {
+    // 显示确认对话框
+    final confirmed = await _showRestoreConfirmDialog(
+      title: '确认恢复设置',
+      content: '这将替换您现有的应用设置和偏好配置。笔记内容不会受到影响。',
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // 显示加载对话框
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('正在恢复设置...'),
+            ],
+          ),
+        ),
+      );
+
+      final result = await _exportService.pickAndImportBackupFile(
+        replaceExisting: true,
+        importSettings: true,
+        importNotes: false, // 只恢复设置，不恢复笔记
+      );
+
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+
+      if (mounted) {
+        final message = _exportService.getImportResultDescription(result);
+        final isSuccess = result == ImportResult.success;
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: isSuccess ? Colors.green : Colors.red,
+          ),
+        );
+
+        if (isSuccess) {
+          // 重新加载设置以反映导入的更改
+          _loadSettings();
+        }
+      }
+    } catch (e) {
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('恢复失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<bool> _showRestoreConfirmDialog({
+    required String title,
+    required String content,
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(title, style: AppTextStyles.titleMedium),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('确认恢复'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
+  }
+
+  Future<void> _showFileSystemDiagnosis() async {
+    // 显示加载对话框
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('正在诊断文件系统...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final diagnosis = await _exportService.diagnosisFileSystem();
+      
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('文件系统诊断结果', style: AppTextStyles.titleMedium),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('诊断状态: ${diagnosis['diagnosis_success'] ? '✅ 成功' : '❌ 失败'}'),
+                    SizedBox(height: 8.h),
+                    if (diagnosis['temp_directory'] != null) ...[
+                      Text('临时目录: ${diagnosis['temp_directory']}'),
+                      Text('目录存在: ${diagnosis['temp_directory_exists'] ? '✅' : '❌'}'),
+                      SizedBox(height: 8.h),
+                    ],
+                    if (diagnosis['file_creation'] != null) ...[
+                      Text('文件创建: ${diagnosis['file_creation'] ? '✅' : '❌'}'),
+                      if (diagnosis['file_size'] != null)
+                        Text('文件大小: ${diagnosis['file_size']} bytes'),
+                      SizedBox(height: 8.h),
+                    ],
+                    if (diagnosis['error'] != null) ...[
+                      Text('错误信息:', style: AppTextStyles.bodyMedium.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      )),
+                      Text('${diagnosis['error']}', style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.red,
+                      )),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('关闭'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      // 关闭加载对话框
+      if (mounted) Navigator.pop(context);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('诊断失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
