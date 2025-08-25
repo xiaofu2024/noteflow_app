@@ -143,8 +143,8 @@ class NotesLocalDataSourceImpl implements NotesLocalDataSource {
   @override
   Future<List<NoteEntity>> searchNotes(String query, {String? userId}) async {
     try {
-      String where = '(title LIKE ? OR content LIKE ?)';
-      List<Object?> whereArgs = ['%$query%', '%$query%'];
+      String where = '(title LIKE ? OR content LIKE ? OR tags LIKE ?)';
+      List<Object?> whereArgs = ['%$query%', '%$query%', '%$query%'];
 
       if (userId != null) {
         where += ' AND user_id = ?';

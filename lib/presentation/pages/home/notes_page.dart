@@ -185,10 +185,10 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(12.r),
                         ),
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: Colors.white,
-                          size: 20.sp,
+                        child: Image.asset(
+                          "assets/images/icon-app-small.png",
+                          width: 20.sp,
+                          height: 20.sp,
                         ),
                       ),
                       SizedBox(width: 12.w),

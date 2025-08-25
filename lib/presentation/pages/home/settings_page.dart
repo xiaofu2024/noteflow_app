@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -105,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _showExportFormatDialog();
                 },
               ),
-              ListTile(
+             if (kDebugMode) ListTile(
                 leading: const Icon(Icons.bug_report_rounded),
                 title: const Text('文件系统诊断'),
                 subtitle: const Text('检查文件导出权限'),

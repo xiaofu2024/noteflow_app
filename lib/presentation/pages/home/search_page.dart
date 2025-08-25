@@ -129,7 +129,7 @@ class _SearchPageState extends State<SearchPage> {
                     focusNode: _searchFocusNode,
                     onSubmitted: _performSearch,
                     decoration: InputDecoration(
-                      hintText: localization.S.of(context).searchNotes,
+                      hintText: "搜索你的笔记...",
                       prefixIcon: Icon(
                         Icons.search_rounded,
                         size: 24.sp,
@@ -162,7 +162,7 @@ class _SearchPageState extends State<SearchPage> {
                   
                   // Quick Actions
                   Text(
-                    localization.S.of(context).quickActions,
+                    "快捷操作",
                     style: AppTextStyles.titleSmall.copyWith(
                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
@@ -175,13 +175,13 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       _buildQuickActionButton(
                         icon: Icons.document_scanner_rounded,
-                        label: localization.S.of(context).ocrScan,
+                        label: "OCR\n扫描",
                         color: AppColors.primary,
                         onTap: _openOCR,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.mic_rounded,
-                        label: localization.S.of(context).voiceNote,
+                        label: "语音\n笔记",
                         color: AppColors.secondary,
                         onTap: _openVoiceNote,
                       ),
@@ -273,7 +273,7 @@ class _SearchPageState extends State<SearchPage> {
         // Recent Searches
         if (_recentSearches.isNotEmpty) ...[
           Text(
-            localization.S.of(context).recentSearches,
+            "最近搜索",
             style: AppTextStyles.titleMedium,
           ),
           SizedBox(height: 12.h),
@@ -355,7 +355,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                   SizedBox(width: 8.w),
                   Text(
-                    localization.S.of(context).searchTips,
+                    "搜索提示",
                     style: AppTextStyles.titleSmall.copyWith(
                       color: AppColors.primary,
                     ),
@@ -364,7 +364,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
               SizedBox(height: 12.h),
               Text(
-                localization.S.of(context).searchTipsDetails,
+                "• 按关键词、标签或内容搜索\n• 使用引号搜索精确短语\n• 按日期搜索：'上周', '昨天'\n• 使用OCR搜索图片中的文字",
                 style: AppTextStyles.bodySmall.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                   height: 1.5,
@@ -436,14 +436,14 @@ class _SearchPageState extends State<SearchPage> {
           ),
           SizedBox(height: 16.h),
           Text(
-            localization.S.of(context).noNotesFound,
+            "未找到笔记",
             style: AppTextStyles.titleMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           SizedBox(height: 8.h),
           Text(
-            localization.S.of(context).tryDifferentKeywords,
+            "尝试不同的关键词或创建新笔记",
             style: AppTextStyles.bodyMedium.copyWith(
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
             ),

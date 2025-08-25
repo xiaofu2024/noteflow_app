@@ -7,7 +7,9 @@
       "Bash(mkdir:*)",
       "Bash(flutter test:*)",
       "Bash(flutter pub:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(flutter gen-l10n:*)",
+      "Bash(flutter packages pub run:*)"
     ],
     "deny": [],
     "ask": []
