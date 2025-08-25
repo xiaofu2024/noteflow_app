@@ -8,9 +8,11 @@ import '../../../core/services/theme_manager.dart';
 import '../../../core/services/biometric_auth_service.dart';
 import '../../../core/services/data_export_service.dart';
 import '../../../core/services/note_color_service.dart';
+import '../../../core/services/reminder_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../settings/webview_page.dart';
+import '../settings/reminder_settings_page.dart';
 import '../../widgets/note_color_picker.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -26,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late BiometricAuthService _biometricService;
   late DataExportService _exportService;
   late NoteColorService _colorService;
+  late ReminderService _reminderService;
   bool _isLoading = true;
   
   // Settings values
@@ -47,6 +50,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _biometricService = GetIt.instance<BiometricAuthService>();
     _exportService = GetIt.instance<DataExportService>();
     _colorService = GetIt.instance<NoteColorService>();
+    _reminderService = GetIt.instance<ReminderService>();
     _loadSettings();
   }
 
@@ -658,11 +662,18 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   _buildTile(
                     title: '提醒设置',
-                    subtitle: '配置笔记提醒',
+                    subtitle: _reminderService.globalRemindersEnabled 
+                        ? '已启用提醒功能' 
+                        : '已禁用提醒功能',
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('提醒设置功能开发中...')),
-                      );
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ReminderSettingsPage(),
+                        ),
+                      ).then((_) {
+                        // 回到设置页面时刷新状态
+                        _loadSettings();
+                      });
                     },
                   ),
                 ],

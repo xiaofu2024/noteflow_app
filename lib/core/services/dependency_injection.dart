@@ -14,6 +14,7 @@ import 'theme_manager.dart';
 import 'biometric_auth_service.dart';
 import 'data_export_service.dart';
 import 'note_color_service.dart';
+import 'reminder_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -27,6 +28,9 @@ Future<void> initializeDependencies() async {
   
   sl.registerLazySingleton<NoteColorService>(() => NoteColorService.instance);
   await sl<NoteColorService>().init();
+  
+  sl.registerLazySingleton<ReminderService>(() => ReminderService.instance);
+  await sl<ReminderService>().init();
   
   sl.registerLazySingleton<ThemeManager>(() => ThemeManager(sl()));
   sl.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());
