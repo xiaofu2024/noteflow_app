@@ -7,10 +7,12 @@ import 'package:noteflow_app/core/constants/app_constants.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../core/services/ai_service.dart';
+import '../../../core/services/note_color_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../editor/note_editor_page.dart';
+import 'package:get_it/get_it.dart';
 
 class OCRScannerPage extends StatefulWidget {
   const OCRScannerPage({super.key});
@@ -100,12 +102,14 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
   void _createNoteFromText() {
     if (_recognizedText != null && _recognizedText!.isNotEmpty) {
       final noteContent = _recognizedText!.trim();
+      final colorService = GetIt.instance<NoteColorService>();
       final note = NoteEntity(
         id: const Uuid().v4(),
         title: 'OCR识别笔记',
         content: noteContent,
         tags: [],
         isPinned: false,
+        color: colorService.getNewNoteColor(),
         userId: AppConstants.userIdKey,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

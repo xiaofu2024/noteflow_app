@@ -313,6 +313,11 @@ class NoteCard extends StatelessWidget {
     final now = DateTime.now();
     final difference = now.difference(date);
 
+    // 如果是未来的日期，直接显示yyyy-MM-dd格式
+    if (difference.isNegative) {
+      return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+    }
+
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
         return '${difference.inMinutes}m ago';

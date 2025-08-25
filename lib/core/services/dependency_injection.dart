@@ -51,7 +51,7 @@ Future<void> initializeDependencies() async {
 
   // Use cases
   sl.registerLazySingleton(() => GetNotesUseCase(sl()));
-  sl.registerLazySingleton(() => CreateNoteUseCase(sl()));
+  sl.registerLazySingleton(() => CreateNoteUseCase(sl(), sl()));
   sl.registerLazySingleton(() => UpdateNoteUseCase(sl()));
   sl.registerLazySingleton(() => DeleteNoteUseCase(sl()));
   sl.registerLazySingleton(() => SearchNotesUseCase(sl()));

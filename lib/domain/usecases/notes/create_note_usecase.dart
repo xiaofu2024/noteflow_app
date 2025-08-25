@@ -1,13 +1,15 @@
 import 'package:dartz/dartz.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/errors/failures.dart';
+import '../../../core/services/reminder_service.dart';
 import '../../entities/note_entity.dart';
 import '../../repositories/notes_repository.dart';
 
 class CreateNoteUseCase {
   final NotesRepository repository;
+  final ReminderService reminderService;
 
-  CreateNoteUseCase(this.repository);
+  CreateNoteUseCase(this.repository, this.reminderService);
 
   Future<Either<Failure, String>> call(CreateNoteParams params) async {
     final now = DateTime.now();
@@ -38,7 +40,22 @@ class CreateNoteUseCase {
       return Left(ValidationFailure('User ID is required'));
     }
 
-    return await repository.createNote(note);
+    final result = await repository.createNote(note);
+    
+    // 如果笔记创建成功，尝试自动创建提醒
+    result.fold(
+      (failure) => null, // 创建失败时不创建提醒
+      (noteId) async {
+        try {
+          await reminderService.createReminderForNote(note.id, note.title);
+        } catch (e) {
+          // 如果创建提醒失败，不影响笔记创建的结果
+          print('创建自动提醒失败: $e');
+        }
+      },
+    );
+    
+    return result;
   }
 }
 

@@ -240,6 +240,20 @@ class NoteColorService {
     await _prefs.remove(_colorPresetsKey);
     _initializeDefaultPresets();
   }
+
+  // 获取新笔记的颜色：默认颜色 > 随机颜色
+  int getNewNoteColor() {
+    // 检查是否有默认颜色设置
+    final defaultColor = this.defaultNoteColor;
+    if (defaultColor != null) {
+      return defaultColor;
+    }
+    
+    // 从颜色数组中随机选择一个颜色
+    const colors = AppColors.noteCategoryColors;
+    final randomIndex = DateTime.now().millisecondsSinceEpoch % colors.length;
+    return colors[randomIndex].value;
+  }
 }
 
 // 颜色预设模型

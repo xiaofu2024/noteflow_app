@@ -364,7 +364,8 @@ class _SearchPageState extends State<SearchPage> {
               ),
               SizedBox(height: 12.h),
               Text(
-                "• 按关键词、标签或内容搜索\n• 使用引号搜索精确短语\n• 按日期搜索：'上周', '昨天'\n• 使用OCR搜索图片中的文字",
+                //"• 按关键词、标签或内容搜索\n• 使用引号搜索精确短语\n• 按日期搜索：'上周', '昨天'\n• 使用OCR搜索图片中的文字",
+                "• 按关键词、标签或内容搜索\n• 使用OCR搜索图片中的文字",
                 style: AppTextStyles.bodySmall.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
                   height: 1.5,

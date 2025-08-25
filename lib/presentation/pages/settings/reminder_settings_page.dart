@@ -27,6 +27,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
   bool _vibrationEnabled = true;
   int _advanceNotificationMinutes = 5;
   bool _weekendRemindersEnabled = false;
+  bool _autoCreateReminderEnabled = false;
   int? _doNotDisturbStartTime;
   int? _doNotDisturbEndTime;
 
@@ -47,6 +48,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
       _vibrationEnabled = _reminderService.vibrationEnabled;
       _advanceNotificationMinutes = _reminderService.advanceNotificationMinutes;
       _weekendRemindersEnabled = _reminderService.weekendRemindersEnabled;
+      _autoCreateReminderEnabled = _reminderService.autoCreateReminderEnabled;
       _doNotDisturbStartTime = _reminderService.doNotDisturbStartTime;
       _doNotDisturbEndTime = _reminderService.doNotDisturbEndTime;
       _isLoading = false;
@@ -143,6 +145,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                   ),
                 ],
               ),
+              */
 
               // 高级设置
               _buildSettingsSection(
@@ -159,6 +162,17 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                       });
                     },
                   ),
+                  _buildSwitchTile(
+                    title: '自动创建提醒',
+                    subtitle: '创建笔记时自动添加提醒（次日复习）',
+                    value: _autoCreateReminderEnabled,
+                    onChanged: (value) async {
+                      await _reminderService.setAutoCreateReminderEnabled(value);
+                      setState(() {
+                        _autoCreateReminderEnabled = value;
+                      });
+                    },
+                  ),
                   _buildTile(
                     title: '勿扰时段',
                     subtitle: _getDoNotDisturbDisplayText(),
@@ -166,7 +180,7 @@ class _ReminderSettingsPageState extends State<ReminderSettingsPage> {
                   ),
                 ],
               ),
-
+/*
               // 提醒管理
               _buildSettingsSection(
                 title: '📝 提醒管理',

@@ -121,6 +121,9 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
     final notesBloc = context.read<NotesBloc>();
     
     if (widget.isNewNote) {
+      // 确定笔记颜色：用户选择 > 默认颜色 > 随机颜色
+      int noteColor = _selectedColor ?? _colorService.getNewNoteColor();
+      
       final newNote = NoteEntity(
         id: const Uuid().v4(),
         title: title.isEmpty ? '无标题' : title,
@@ -130,7 +133,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
         updatedAt: widget.noteParam?.updatedAt ?? DateTime.now(),
         isPinned: _isPinned,
         isEncrypted: false,
-        color: _selectedColor,
+        color: noteColor,
         userId: 'user_1', // TODO: Get from user session
         isFavorite: false,
         attachments: [],

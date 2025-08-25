@@ -1273,7 +1273,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      '• 恢复备份会覆盖现有数据，建议先导出当前数据\n• 仅支持导入JSON格式的备份文件\n• 文本和CSV格式的导出文件无法导入\n• 可选择恢复完整备份、仅笔记或仅设置',
+                      '• 恢复备份会覆盖现有数据，建议先导出当前数据\n• 仅支持导入JSON格式的备份文件\n• 可选择恢复完整备份、仅笔记或仅设置',
                       style: AppTextStyles.bodySmall.copyWith(
                         color: Colors.orange.shade600,
                       ),

@@ -7,10 +7,12 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/ai_service.dart';
+import '../../../core/services/note_color_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../editor/note_editor_page.dart';
+import 'package:get_it/get_it.dart';
 
 class VoiceNotePage extends StatefulWidget {
   const VoiceNotePage({super.key});
@@ -197,11 +199,12 @@ class _VoiceNotePageState extends State<VoiceNotePage>
   void _createNoteFromText() {
     if (_recognizedText.isNotEmpty) {
       final noteContent = _recognizedText!.trim();
+      final colorService = GetIt.instance<NoteColorService>();
       final note = NoteEntity(
         id: const Uuid().v4(),
         title: '语音识别笔记',
         content: noteContent,
-        color: 0xFFE91E63,
+        color: colorService.getNewNoteColor(),
         tags: [],
         isPinned: false,
         userId: AppConstants.userIdKey,

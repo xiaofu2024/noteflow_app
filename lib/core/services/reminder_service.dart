@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import '../../domain/entities/reminder_entity.dart';
 
 class ReminderService {
@@ -123,6 +124,14 @@ class ReminderService {
   /// 获取是否启用勿扰模式
   bool get doNotDisturbEnabled => doNotDisturbStartTime != null && doNotDisturbEndTime != null;
 
+  /// 获取是否启用创建笔记时自动创建提醒
+  bool get autoCreateReminderEnabled => _prefs.getBool('auto_create_reminder_enabled') ?? false;
+
+  /// 设置创建笔记时自动创建提醒的开关
+  Future<void> setAutoCreateReminderEnabled(bool enabled) async {
+    await _prefs.setBool('auto_create_reminder_enabled', enabled);
+  }
+
   // 提醒管理相关方法
 
   /// 获取所有提醒
@@ -203,6 +212,42 @@ class ReminderService {
     await _prefs.remove(_remindersKey);
   }
 
+  /// 为笔记自动创建提醒（根据默认设置）
+  Future<void> createReminderForNote(String noteId, String noteTitle) async {
+    if (!autoCreateReminderEnabled || !globalRemindersEnabled) {
+      return; // 如果没有启用自动创建提醒或全局提醒已禁用，则不创建
+    }
+
+    final now = DateTime.now();
+    final defaultTime = defaultReminderTime;
+    final hours = defaultTime ~/ 60;
+    final minutes = defaultTime % 60;
+    
+    // 创建明天的提醒时间
+    final reminderTime = DateTime(
+      now.year,
+      now.month,
+      now.day + 1, // 明天
+      hours,
+      minutes,
+    );
+
+    final reminder = ReminderEntity(
+      id: const Uuid().v4(),
+      title: '回顾笔记：$noteTitle',
+      message: '是时候回顾一下这篇笔记了',
+      time: reminderTime,
+      type: defaultReminderType,
+      actions: defaultReminderActions,
+      isEnabled: true,
+      noteId: noteId,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await createReminder(reminder);
+  }
+
   /// 保存提醒列表到SharedPreferences
   Future<void> _saveReminders(List<ReminderEntity> reminders) async {
     final remindersJson = reminders.map((reminder) => jsonEncode(reminder.toJson())).toList();
@@ -258,6 +303,7 @@ class ReminderService {
       'vibration_enabled': vibrationEnabled,
       'advance_notification_minutes': advanceNotificationMinutes,
       'weekend_reminders_enabled': weekendRemindersEnabled,
+      'auto_create_reminder_enabled': autoCreateReminderEnabled,
       'dnd_start_time': doNotDisturbStartTime,
       'dnd_end_time': doNotDisturbEndTime,
     };
@@ -298,6 +344,9 @@ class ReminderService {
     }
     if (settings.containsKey('weekend_reminders_enabled')) {
       await setWeekendRemindersEnabled(settings['weekend_reminders_enabled'] ?? false);
+    }
+    if (settings.containsKey('auto_create_reminder_enabled')) {
+      await setAutoCreateReminderEnabled(settings['auto_create_reminder_enabled'] ?? false);
     }
     if (settings.containsKey('dnd_start_time') && settings.containsKey('dnd_end_time')) {
       await setDoNotDisturbTime(

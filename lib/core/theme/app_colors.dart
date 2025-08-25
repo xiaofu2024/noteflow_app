@@ -55,20 +55,22 @@ class AppColors {
     Color(0xFFFFCDD2), // Red
     Color(0xFFF8BBD9), // Pink
     Color(0xFFE1BEE7), // Purple
-    Color(0xFFD1C4E9), // Deep Purple
-    Color(0xFFC5CAE9), // Indigo
+    Color(0xFFE91E63), // Red
+    Color(0xFF3F51B5), // Dark Blue
     Color(0xFFBBDEFB), // Blue
     Color(0xFFB3E5FC), // Light Blue
-    Color(0xFFB2EBF2), // Cyan
+    Color(0xFF2196F3), // Blue
     Color(0xFFB2DFDB), // Teal
-    Color(0xFFC8E6C9), // Green
-    Color(0xFFDCEDC8), // Light Green
+    Color(0xFFC8E6C9), // Light Green
+    Color(0xFF4CAF50), // Green
     Color(0xFFF0F4C3), // Lime
     Color(0xFFFFF9C4), // Yellow
     Color(0xFFFFECB3), // Amber
-    Color(0xFFFFE0B2), // Orange
+    Color(0xFFFFC107), // Orange
     Color(0xFFFFCCBC), // Deep Orange
   ];
+
+  //0xFF4CAF50，0xFF2196F3，0xFFFFC107，
   
   // Gradient Colors
   static const Gradient primaryGradient = LinearGradient(
