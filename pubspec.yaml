@@ -94,6 +94,7 @@ flutter:
     - assets/animations/
     - assets/sounds/
     - assets/html/
+    - assets/json/
 
 flutter_intl:
   enabled: true
