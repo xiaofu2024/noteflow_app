@@ -94,6 +94,7 @@ class AIService {
         listenOptions: SpeechListenOptions(
           cancelOnError: true,
           partialResults: true,
+          autoPunctuation: true
         ),
       );
       
