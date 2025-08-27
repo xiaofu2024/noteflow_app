@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/user_preferences_service.dart';
 import '../../../core/services/theme_manager.dart';
@@ -816,11 +817,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   _buildTile(
                     title: '为应用评分',
                     subtitle: '在App Store上为我们评分',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('谢谢您的支持！')),
-                      );
-                    },
+                    onTap: _openAppStoreRating,
                   ),
                 ],
               ),
@@ -1186,9 +1183,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ListTile(
                 leading: const Icon(Icons.email),
                 title: const Text('邮箱支持'),
-                subtitle: const Text('support@noteflow.com'),
+                subtitle: const Text('shenghua@shenghuatech.hk'),
                 onTap: () {
-                  Clipboard.setData(const ClipboardData(text: 'support@noteflow.com'));
+                  Clipboard.setData(const ClipboardData(text: 'shenghua@shenghuatech.hk'));
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('邮箱地址已复制')),
                   );
@@ -1511,6 +1508,35 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     return result ?? false;
+  }
+
+  Future<void> _openAppStoreRating() async {
+    const appId = '6751504034';
+    final url = Uri.parse('https://apps.apple.com/app/id$appId?action=write-review');
+    
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('无法打开App Store，请手动前往应用商店为我们评分'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('打开App Store失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _showFileSystemDiagnosis() async {
