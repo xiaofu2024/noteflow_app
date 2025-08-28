@@ -62,3 +62,12 @@ class EncryptionException implements Exception {
   @override
   String toString() => 'EncryptionException: $message';
 }
+
+class PurchaseException implements Exception {
+  final String message;
+
+  const PurchaseException(this.message);
+
+  @override
+  String toString() => 'PurchaseException: $message';
+}

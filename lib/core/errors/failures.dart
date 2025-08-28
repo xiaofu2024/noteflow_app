@@ -50,3 +50,7 @@ class EncryptionFailure extends Failure {
 class UnknownFailure extends Failure {
   const UnknownFailure([String message = 'An unknown error occurred']) : super(message);
 }
+
+class PurchaseFailure extends Failure {
+  const PurchaseFailure(String message) : super(message);
+}

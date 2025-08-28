@@ -1,20 +1,27 @@
 import 'package:get_it/get_it.dart';
+import 'package:dio/dio.dart';
 import '../../data/datasources/local/database_helper.dart';
 import '../../data/datasources/local/notes_local_data_source.dart';
+import '../../data/datasources/remote/vip_api_service.dart';
 import '../../data/repositories/notes_repository_impl.dart';
+import '../../data/repositories/vip_repository_impl.dart';
 import '../../domain/repositories/notes_repository.dart';
+import '../../domain/repositories/vip_repository.dart';
 import '../../domain/usecases/notes/get_notes_usecase.dart';
 import '../../domain/usecases/notes/create_note_usecase.dart';
 import '../../domain/usecases/notes/update_note_usecase.dart';
 import '../../domain/usecases/notes/delete_note_usecase.dart';
 import '../../domain/usecases/notes/search_notes_usecase.dart';
 import '../../presentation/bloc/notes/notes_bloc.dart';
+import '../../presentation/bloc/subscription/subscription_bloc.dart';
 import 'user_preferences_service.dart';
 import 'theme_manager.dart';
 import 'biometric_auth_service.dart';
 import 'data_export_service.dart';
 import 'note_color_service.dart';
 import 'reminder_service.dart';
+import 'iap_service.dart';
+import 'vip_manager.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -36,6 +43,21 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());
   sl.registerLazySingleton<DataExportService>(() => DataExportService());
   
+  // VIP Services
+  sl.registerLazySingleton<VipManager>(() => VipManager());
+  await sl<VipManager>().initialize();
+  
+  sl.registerLazySingleton<IAPService>(() => IAPService());
+  await sl<IAPService>().initialize();
+  
+  // Network
+  sl.registerLazySingleton<Dio>(() {
+    final dio = Dio();
+    dio.options.connectTimeout = Duration(seconds: 10);
+    dio.options.receiveTimeout = Duration(seconds: 10);
+    return dio;
+  });
+  
   // Initialize database and add sample data
   await _initializeSampleData();
 
@@ -43,10 +65,21 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton<NotesLocalDataSource>(
     () => NotesLocalDataSourceImpl(sl()),
   );
+  
+  sl.registerLazySingleton<VipApiService>(
+    () => VipApiService(sl()),
+  );
 
   // Repositories
   sl.registerLazySingleton<NotesRepository>(
     () => NotesRepositoryImpl(localDataSource: sl()),
+  );
+  
+  sl.registerLazySingleton<VipRepository>(
+    () => VipRepositoryImpl(
+      apiService: sl(),
+      iapService: sl(),
+    ),
   );
 
   // Use cases
@@ -64,6 +97,13 @@ Future<void> initializeDependencies() async {
       updateNoteUseCase: sl(),
       deleteNoteUseCase: sl(),
       searchNotesUseCase: sl(),
+    ),
+  );
+  
+  sl.registerLazySingleton(
+    () => SubscriptionBloc(
+      vipRepository: sl(),
+      vipManager: sl(),
     ),
   );
 }

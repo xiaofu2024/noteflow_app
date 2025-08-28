@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
 import 'core/constants/app_constants.dart';
@@ -11,6 +12,8 @@ import 'core/services/dependency_injection.dart';
 import 'core/services/ai_service.dart';
 import 'core/services/theme_manager.dart';
 import 'presentation/pages/splash_page.dart';
+import 'presentation/pages/subscription/subscription_page.dart';
+import 'presentation/bloc/subscription/subscription_bloc.dart';
 import 'package:noteflow_app/generated/l10n.dart';
 
 void main() async {
@@ -105,6 +108,14 @@ class NoteFlowApp extends StatelessWidget {
       case '/':
         return MaterialPageRoute(
           builder: (_) => const SplashPage(),
+          settings: settings,
+        );
+      case '/subscription':
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => GetIt.instance<SubscriptionBloc>(),
+            child: const SubscriptionPage(),
+          ),
           settings: settings,
         );
       default:

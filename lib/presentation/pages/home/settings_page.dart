@@ -772,6 +772,19 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
               _buildSettingsSection(
+                title: '💎 会员中心',
+                children: [
+                  _buildTile(
+                    title: 'VIP会员',
+                    subtitle: '解锁更多高级功能',
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/subscription');
+                    },
+                  ),
+                ],
+              ),
+
+              _buildSettingsSection(
                 title: '📱 关于',
                 children: [
                   _buildTile(

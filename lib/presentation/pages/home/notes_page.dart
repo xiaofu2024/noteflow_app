@@ -158,12 +158,12 @@ class _NotesPageState extends State<NotesPage> with WidgetsBindingObserver {
             final pinnedNotes = state.pinnedNotes;
             final recentNotes = state.recentNotes;
             
-            print('🎨 UI rendering: pinnedNotes.length=${pinnedNotes.length}, recentNotes.length=${recentNotes.length}');
-            print('🎨 Grid view mode: $_isGridView');
-            print('🎨 State notes: ${state.notes.length}');
-            print('🎨 State pinnedNotes: ${state.pinnedNotes.length}');
-            print('🎨 State recentNotes: ${state.recentNotes.length}');
-            print('🎨 Rendering time: ${DateTime.now()}');
+            // print('🎨 UI rendering: pinnedNotes.length=${pinnedNotes.length}, recentNotes.length=${recentNotes.length}');
+            // print('🎨 Grid view mode: $_isGridView');
+            // print('🎨 State notes: ${state.notes.length}');
+            // print('🎨 State pinnedNotes: ${state.pinnedNotes.length}');
+            // print('🎨 State recentNotes: ${state.recentNotes.length}');
+            // print('🎨 Rendering time: ${DateTime.now()}');
             //print('🎨 Stack trace: ${StackTrace.current}');
             
             return CustomScrollView(

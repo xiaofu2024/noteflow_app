@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'vip_config_entity.dart';
 
 class UserEntity extends Equatable {
   final String id;
