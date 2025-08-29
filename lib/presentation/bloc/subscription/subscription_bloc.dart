@@ -69,7 +69,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         } else {
           emit(SubscriptionPurchaseError(
             config,
-            'Purchase failed',
+            'Purchase failed ${event.productId}',
           ));
         }
       },
