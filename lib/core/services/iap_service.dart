@@ -261,7 +261,7 @@ class IAPService {
     switch (productId) {
       case 'com.shenghua.note.vip_3001':
         return VipLevel.vipLevel1;
-      case 'com.shenghua.note.vip_3002':
+      case 'com.shenghua.note.vip3002':
         return VipLevel.vipLevel2;
       case 'com.shenghua.note.vip_3003':
         return VipLevel.vipLevel3;
