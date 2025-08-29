@@ -67,7 +67,7 @@ Api baseUrl = https://shl-api.weletter01.com
             },
             {
                 "id": 5,
-                "productId": "com.shenghua.note.vip_3002",
+                "productId": "com.shenghua.note.vip3002",
                 "level": "VL_VIP_2",
                 "ocrLimit": -1,
                 "noteCreateLimit": 50,

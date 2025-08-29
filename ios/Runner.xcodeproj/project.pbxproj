@@ -17,6 +17,7 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		DC6EAAA32E589BFD000DEB59 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DC6EAA9E2E589BFD000DEB59 /* InfoPlist.strings */; };
 		DC6EAAA42E589BFD000DEB59 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = DC6EAAA12E589BFD000DEB59 /* InfoPlist.strings */; };
+		DC826DE42E61A7E300C3B93C /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC826DE32E61A7E300C3B93C /* StoreKit.framework */; };
 		DC8E9372A8E07E011414BA19 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 492C82C2D2F032A3FE6BB93A /* Pods_Runner.framework */; };
 /* End PBXBuildFile section */
 
@@ -68,6 +69,7 @@
 		D32200A6F514382D1B38167A /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		DC6EAA9D2E589BFD000DEB59 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = InfoPlist.strings; sourceTree = "<group>"; };
 		DC6EAAA02E589BFD000DEB59 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = InfoPlist.strings; sourceTree = "<group>"; };
+		DC826DE32E61A7E300C3B93C /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		EB4FBFAC1BD389CAA4EB5A70 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,6 +87,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC8E9372A8E07E011414BA19 /* Pods_Runner.framework in Frameworks */,
+				DC826DE42E61A7E300C3B93C /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -94,6 +97,7 @@
 		0AB5D9326ADDDDC102166BAC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				DC826DE32E61A7E300C3B93C /* StoreKit.framework */,
 				492C82C2D2F032A3FE6BB93A /* Pods_Runner.framework */,
 				EB4FBFAC1BD389CAA4EB5A70 /* Pods_RunnerTests.framework */,
 			);
@@ -529,6 +533,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
@@ -714,6 +719,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = "";
