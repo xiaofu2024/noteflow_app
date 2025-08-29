@@ -4,6 +4,23 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../domain/entities/vip_config_entity.dart';
 
 class IAPService {
+  /// Service class to manage in-app purchases (IAP) using the `in_app_purchase` package.
+  ///
+  /// This class is implemented as a singleton to provide a single point of access
+  /// for IAP functionality throughout the app.
+  ///
+  /// It supports loading available products, initiating purchases, restoring purchases,
+  /// and handling purchase updates with appropriate callbacks for different purchase states.
+  ///
+  /// Supported platforms: iOS, macOS, Android.
+  ///
+  /// Usage:
+  /// ```dart
+  /// final iapService = IAPService();
+  /// await iapService.initialize();
+  /// iapService.onPurchaseSuccess = (purchase) { ... };
+  /// iapService.purchaseProduct(productId);
+  /// ```
   static final IAPService _instance = IAPService._internal();
   factory IAPService() => _instance;
   IAPService._internal();
@@ -27,14 +44,32 @@ class IAPService {
   Function(PurchaseDetails)? onPurchasePending;
   Function(PurchaseDetails)? onPurchaseRestored;
 
+  // Optional error callback for external error handling
+  Function(String, dynamic)? onError;
+
+  void _logError(String message, [dynamic error]) {
+    final errorMsg = error != null ? '$message: $error' : message;
+    print('IAPService ERROR: $errorMsg');
+    if (onError != null) {
+      onError!(message, error);
+    }
+  }
+
+  /// Initializes the IAP service.
+  ///
+  /// Checks platform support, availability of in-app purchases,
+  /// sets up purchase update listener, and loads available products.
+  ///
+  /// Returns `true` if initialization succeeds, `false` otherwise.
   Future<bool> initialize() async {
     try {
-      if (!Platform.isIOS && !Platform.isMacOS) {
-        throw UnsupportedError('Only iOS and macOS are supported');
+      if (!Platform.isIOS && !Platform.isMacOS && !Platform.isAndroid) {
+        throw UnsupportedError('Only iOS, macOS, and Android are supported');
       }
 
       final bool isAvailable = await _inAppPurchase.isAvailable();
       if (!isAvailable) {
+        _logError('In-app purchase is not available on this device');
         return false;
       }
 
@@ -44,7 +79,7 @@ class IAPService {
         _onPurchaseUpdate,
         onDone: () {},
         onError: (error) {
-          print('Purchase stream error: $error');
+          _logError('Purchase stream error', error);
         },
       );
 
@@ -53,14 +88,18 @@ class IAPService {
 
       return true;
     } catch (e) {
-      print('IAP initialization error: $e');
+      _logError('IAP initialization error', e);
       return false;
     }
   }
 
+  /// Loads product details for the predefined product IDs.
+  ///
+  /// Updates the `availableProducts` list with the loaded products.
+  /// Logs errors if product loading fails.
   Future<void> loadProducts() async {
     try {
-      final ProductDetailsResponse response = 
+      final ProductDetailsResponse response =
           await _inAppPurchase.queryProductDetails(_productIds);
 
       if (response.error != null) {
@@ -71,10 +110,14 @@ class IAPService {
       print('Loaded ${availableProducts.length} products');
       print('Available product IDs: ${availableProducts.map((p) => p.id).toList()}');
     } catch (e) {
-      print('Error loading products: $e');
+      _logError('Error loading products', e);
     }
   }
 
+  /// Initiates a purchase for the product with the given [productId].
+  ///
+  /// Returns `true` if the purchase flow started successfully, `false` otherwise.
+  /// Throws an error if the product is not found or IAP is unavailable.
   Future<bool> purchaseProduct(String productId) async {
     try {
       // Ensure IAP is available
@@ -93,8 +136,7 @@ class IAPService {
           .firstOrNull;
 
       if (productDetails == null) {
-        print('Product not found: $productId');
-        print('Available products: ${availableProducts.map((p) => p.id).toList()}');
+        _logError('Product not found: $productId. Available products: ${availableProducts.map((p) => p.id).toList()}');
         throw Exception('Product not found: $productId. Available products: ${availableProducts.map((p) => p.id).toList()}');
       }
 
@@ -108,29 +150,38 @@ class IAPService {
 
       return success;
     } catch (e) {
-      print('Purchase error: $e');
+      _logError('Purchase error', e);
       return false;
     }
   }
 
+  /// Restores previous purchases.
+  ///
+  /// Calls the underlying platform's restore purchases method.
   Future<void> restorePurchases() async {
     try {
       await _inAppPurchase.restorePurchases();
     } catch (e) {
-      print('Restore purchases error: $e');
+      _logError('Restore purchases error', e);
     }
   }
 
+  /// Completes the purchase process for the given [purchaseDetails].
+  ///
+  /// This should be called after processing the purchase to finalize it.
   Future<void> completePurchase(PurchaseDetails purchaseDetails) async {
     try {
       if (purchaseDetails.pendingCompletePurchase) {
         await _inAppPurchase.completePurchase(purchaseDetails);
       }
     } catch (e) {
-      print('Complete purchase error: $e');
+      _logError('Complete purchase error', e);
     }
   }
 
+  /// Internal handler for purchase updates received from the purchase stream.
+  ///
+  /// Dispatches to specific handlers based on the purchase status.
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) {
     for (final PurchaseDetails purchaseDetails in purchaseDetailsList) {
       switch (purchaseDetails.status) {
@@ -153,23 +204,35 @@ class IAPService {
     }
   }
 
+  /// Handles a purchase with status `pending`.
+  ///
+  /// Calls the `onPurchasePending` callback if set.
   void _handlePendingPurchase(PurchaseDetails purchaseDetails) {
     print('Purchase pending: ${purchaseDetails.productID}');
     onPurchasePending?.call(purchaseDetails);
   }
 
+  /// Handles a purchase with status `purchased`.
+  ///
+  /// Calls the `onPurchaseSuccess` callback and completes the purchase.
   void _handleSuccessfulPurchase(PurchaseDetails purchaseDetails) {
     print('Purchase successful: ${purchaseDetails.productID}');
     onPurchaseSuccess?.call(purchaseDetails);
     completePurchase(purchaseDetails);
   }
 
+  /// Handles a purchase with status `restored`.
+  ///
+  /// Calls the `onPurchaseRestored` callback and completes the purchase.
   void _handleRestoredPurchase(PurchaseDetails purchaseDetails) {
     print('Purchase restored: ${purchaseDetails.productID}');
     onPurchaseRestored?.call(purchaseDetails);
     completePurchase(purchaseDetails);
   }
 
+  /// Handles a purchase with status `error`.
+  ///
+  /// Calls the `onPurchaseError` callback with the error message and completes the purchase.
   void _handleFailedPurchase(PurchaseDetails purchaseDetails) {
     final String error = purchaseDetails.error?.message ?? 'Unknown error';
     print('Purchase failed: ${purchaseDetails.productID}, Error: $error');
@@ -177,18 +240,23 @@ class IAPService {
     completePurchase(purchaseDetails);
   }
 
+  /// Handles a purchase with status `canceled`.
+  ///
+  /// Calls the `onPurchaseError` callback with a cancellation message and completes the purchase.
   void _handleCanceledPurchase(PurchaseDetails purchaseDetails) {
     print('Purchase canceled: ${purchaseDetails.productID}');
     onPurchaseError?.call(purchaseDetails, 'Purchase canceled by user');
     completePurchase(purchaseDetails);
   }
 
+  /// Returns the [ProductDetails] for the given [productId], or `null` if not found.
   ProductDetails? getProductById(String productId) {
     return availableProducts
         .where((product) => product.id == productId)
         .firstOrNull;
   }
 
+  /// Returns the [VipLevel] enum corresponding to the given [productId], or `null` if unknown.
   VipLevel? getVipLevelByProductId(String productId) {
     switch (productId) {
       case 'com.shenghua.note.vip_3001':
@@ -202,6 +270,7 @@ class IAPService {
     }
   }
 
+  /// Disposes the service by cancelling the purchase update subscription.
   void dispose() {
     _subscription?.cancel();
     _subscription = null;
