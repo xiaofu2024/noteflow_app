@@ -100,7 +100,7 @@ Future<void> initializeDependencies() async {
     ),
   );
   
-  sl.registerLazySingleton(
+  sl.registerFactory(
     () => SubscriptionBloc(
       vipRepository: sl(),
       vipManager: sl(),

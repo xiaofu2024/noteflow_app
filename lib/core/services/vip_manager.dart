@@ -21,9 +21,13 @@ class VipManager {
   SharedPreferences? _prefs;
   VipConfigEntity? _vipConfig;
   
-  final StreamController<VipLevel> _vipLevelController = 
-      StreamController<VipLevel>.broadcast();
-  Stream<VipLevel> get vipLevelStream => _vipLevelController.stream;
+  StreamController<VipLevel>? _vipLevelController;
+  Stream<VipLevel> get vipLevelStream {
+    if (_vipLevelController == null || _vipLevelController!.isClosed) {
+      _vipLevelController = StreamController<VipLevel>.broadcast();
+    }
+    return _vipLevelController!.stream;
+  }
 
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
@@ -42,7 +46,10 @@ class VipManager {
       await _prefs?.setInt(_keyVipExpireTime, expireTime.millisecondsSinceEpoch);
     }
     
-    _vipLevelController.add(level);
+    if (_vipLevelController == null || _vipLevelController!.isClosed) {
+      _vipLevelController = StreamController<VipLevel>.broadcast();
+    }
+    _vipLevelController!.add(level);
   }
 
   VipLevel getCurrentVipLevel() {
@@ -207,6 +214,7 @@ class VipManager {
   }
 
   void dispose() {
-    _vipLevelController.close();
+    _vipLevelController?.close();
+    _vipLevelController = null;
   }
 }

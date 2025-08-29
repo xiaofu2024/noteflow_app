@@ -9,7 +9,7 @@ class IAPService {
   IAPService._internal();
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
-  late StreamSubscription<List<PurchaseDetails>> _subscription;
+  StreamSubscription<List<PurchaseDetails>>? _subscription;
   
   // Product IDs from your MD file
   static const Set<String> _productIds = {
@@ -29,8 +29,8 @@ class IAPService {
 
   Future<bool> initialize() async {
     try {
-      if (!Platform.isIOS) {
-        throw UnsupportedError('Only iOS is supported');
+      if (!Platform.isIOS && !Platform.isMacOS) {
+        throw UnsupportedError('Only iOS and macOS are supported');
       }
 
       final bool isAvailable = await _inAppPurchase.isAvailable();
@@ -39,6 +39,7 @@ class IAPService {
       }
 
       // Listen to purchase updates
+      _subscription?.cancel(); // Cancel existing subscription if any
       _subscription = _inAppPurchase.purchaseStream.listen(
         _onPurchaseUpdate,
         onDone: () {},
@@ -189,6 +190,7 @@ class IAPService {
   }
 
   void dispose() {
-    _subscription.cancel();
+    _subscription?.cancel();
+    _subscription = null;
   }
 }

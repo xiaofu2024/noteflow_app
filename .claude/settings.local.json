@@ -10,7 +10,8 @@
       "Bash(rm:*)",
       "Bash(flutter gen-l10n:*)",
       "Bash(flutter packages pub run:*)",
-      "Bash(dart run:*)"
+      "Bash(dart run:*)",
+      "Bash(flutter clean:*)"
     ],
     "deny": [],
     "ask": []

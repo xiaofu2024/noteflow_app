@@ -86,7 +86,7 @@ class VipProduct extends Equatable {
   bool get hasUnlimitedSpeech => speechLimit == -1;
   bool get hasUnlimitedAi => aiLimit == -1;
   bool get isSubscription => period > 0;
-  String get priceText => '¥$price';
+  String get priceText => '¥${(price / 100).toStringAsFixed(2)}';
   String get periodText {
     if (period == 0) return '一次性购买';
     if (period == 30) return '月订阅';
