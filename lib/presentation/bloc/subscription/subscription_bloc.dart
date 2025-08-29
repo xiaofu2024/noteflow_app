@@ -42,24 +42,33 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     PurchaseProduct event,
     Emitter<SubscriptionState> emit,
   ) async {
-    if (state is! SubscriptionLoaded) return;
+    // 检查是否有配置可用
+    late VipConfigEntity config;
+    if (state is SubscriptionLoaded) {
+      config = (state as SubscriptionLoaded).config;
+    } else if (state is SubscriptionPurchaseError) {
+      config = (state as SubscriptionPurchaseError).config;
+    } else if (state is SubscriptionPurchaseSuccess) {
+      config = (state as SubscriptionPurchaseSuccess).config;
+    } else {
+      return;
+    }
     
-    final currentState = state as SubscriptionLoaded;
-    emit(SubscriptionPurchasing(currentState.config));
+    emit(SubscriptionPurchasing(config));
 
     final result = await vipRepository.purchaseProduct(event.productId);
     
     result.fold(
       (failure) => emit(SubscriptionPurchaseError(
-        currentState.config,
+        config,
         failure.message,
       )),
       (success) {
         if (success) {
-          emit(SubscriptionPurchaseSuccess(currentState.config));
+          emit(SubscriptionPurchaseSuccess(config));
         } else {
           emit(SubscriptionPurchaseError(
-            currentState.config,
+            config,
             'Purchase failed',
           ));
         }
