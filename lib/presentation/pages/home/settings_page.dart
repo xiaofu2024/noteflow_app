@@ -634,10 +634,22 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
           ),
-
           // Settings Sections
           SliverList(
             delegate: SliverChildListDelegate([
+
+              _buildSettingsSection(
+                title: '💎 会员中心',
+                children: [
+                  _buildTile(
+                    title: 'VIP会员',
+                    subtitle: '解锁更多高级功能',
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/subscription');
+                    },
+                  ),
+                ],
+              ),
               _buildSettingsSection(
                 title: '🔒 安全与隐私',
                 children: [
@@ -766,19 +778,6 @@ class _SettingsPageState extends State<SettingsPage> {
                         // 回到设置页面时刷新状态
                         _loadSettings();
                       });
-                    },
-                  ),
-                ],
-              ),
-
-              _buildSettingsSection(
-                title: '💎 会员中心',
-                children: [
-                  _buildTile(
-                    title: 'VIP会员',
-                    subtitle: '解锁更多高级功能',
-                    onTap: () {
-                      Navigator.of(context).pushNamed('/subscription');
                     },
                   ),
                 ],

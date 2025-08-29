@@ -69,6 +69,7 @@ class IAPService {
 
       availableProducts = response.productDetails;
       print('Loaded ${availableProducts.length} products');
+      print('Available product IDs: ${availableProducts.map((p) => p.id).toList()}');
     } catch (e) {
       print('Error loading products: $e');
     }
@@ -76,11 +77,25 @@ class IAPService {
 
   Future<bool> purchaseProduct(String productId) async {
     try {
+      // Ensure IAP is available
+      if (!await _inAppPurchase.isAvailable()) {
+        throw Exception('In-app purchases are not available');
+      }
+
+      // If no products loaded, try to load them first
+      if (availableProducts.isEmpty) {
+        print('No products loaded, attempting to load products...');
+        await loadProducts();
+      }
+
       final ProductDetails? productDetails = availableProducts
-          .firstWhere((product) => product.id == productId);
+          .where((product) => product.id == productId)
+          .firstOrNull;
 
       if (productDetails == null) {
-        throw Exception('Product not found: $productId');
+        print('Product not found: $productId');
+        print('Available products: ${availableProducts.map((p) => p.id).toList()}');
+        throw Exception('Product not found: $productId. Available products: ${availableProducts.map((p) => p.id).toList()}');
       }
 
       final PurchaseParam purchaseParam = PurchaseParam(
@@ -169,11 +184,9 @@ class IAPService {
   }
 
   ProductDetails? getProductById(String productId) {
-    try {
-      return availableProducts.firstWhere((product) => product.id == productId);
-    } catch (e) {
-      return null;
-    }
+    return availableProducts
+        .where((product) => product.id == productId)
+        .firstOrNull;
   }
 
   VipLevel? getVipLevelByProductId(String productId) {
