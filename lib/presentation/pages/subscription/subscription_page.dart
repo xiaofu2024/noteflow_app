@@ -30,51 +30,95 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
-      body: BlocBuilder<SubscriptionBloc, SubscriptionState>(
-        builder: (context, state) {
-          if (state is SubscriptionLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          if (state is SubscriptionError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    '加载失败',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.message,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<SubscriptionBloc>().add(LoadSubscriptionConfig());
-                    },
-                    child: const Text('重试'),
+      body: BlocListener<SubscriptionBloc, SubscriptionState>(
+        listener: (context, state) {
+          if (state is SubscriptionPurchaseError) {
+            // 显示内购失败弹窗
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('购买失败'),
+                  ],
+                ),
+                content: Text(state.message),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('确定'),
                   ),
                 ],
               ),
             );
           }
-          
-          if (state is SubscriptionLoaded) {
-            return _buildSubscriptionContent(state.config);
-          }
-          
-          return const SizedBox.shrink();
         },
+        child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+          builder: (context, state) {
+            if (state is SubscriptionLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            
+            if (state is SubscriptionError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '加载失败',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<SubscriptionBloc>().add(LoadSubscriptionConfig());
+                      },
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              );
+            }
+            
+            if (state is SubscriptionLoaded || 
+                state is SubscriptionPurchaseError ||
+                state is SubscriptionPurchasing ||
+                state is SubscriptionPurchaseSuccess) {
+              VipConfigEntity config;
+              if (state is SubscriptionLoaded) {
+                config = state.config;
+              } else if (state is SubscriptionPurchaseError) {
+                config = state.config;
+              } else if (state is SubscriptionPurchasing) {
+                config = state.config;
+              } else if (state is SubscriptionPurchaseSuccess) {
+                config = state.config;
+              } else {
+                return const SizedBox.shrink();
+              }
+              return _buildSubscriptionContent(config);
+            }
+            
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
@@ -113,10 +157,17 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               .where((product) => product.level != VipLevel.vipLevel0)
               .map((product) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: VipProductCard(
-                      product: product,
-                      isCurrentPlan: product.level == currentLevel && isVipActive,
-                      onPurchase: () => _onPurchaseProduct(product),
+                    child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                      builder: (context, state) {
+                        final isPurchasing = state is SubscriptionPurchasing && 
+                                           state.config.goods.any((p) => p.productId == product.productId);
+                        return VipProductCard(
+                          product: product,
+                          isCurrentPlan: product.level == currentLevel && isVipActive,
+                          isPurchasing: isPurchasing,
+                          onPurchase: () => _onPurchaseProduct(product),
+                        );
+                      },
                     ),
                   )),
           

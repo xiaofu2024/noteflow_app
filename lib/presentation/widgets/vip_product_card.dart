@@ -4,12 +4,14 @@ import '../../domain/entities/vip_config_entity.dart';
 class VipProductCard extends StatelessWidget {
   final VipProduct product;
   final bool isCurrentPlan;
+  final bool isPurchasing;
   final VoidCallback onPurchase;
 
   const VipProductCard({
     Key? key,
     required this.product,
     required this.isCurrentPlan,
+    this.isPurchasing = false,
     required this.onPurchase,
   }) : super(key: key);
 
@@ -111,7 +113,7 @@ class VipProductCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: isCurrentPlan ? null : onPurchase,
+                    onPressed: (isCurrentPlan || isPurchasing) ? null : onPurchase,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isCurrentPlan 
                           ? Colors.grey 
@@ -121,14 +123,23 @@ class VipProductCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text(
-                      isCurrentPlan ? '当前套餐' : '立即购买',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    child: isPurchasing 
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : Text(
+                            isCurrentPlan ? '当前套餐' : '立即购买',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ),
               ],

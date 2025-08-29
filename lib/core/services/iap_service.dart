@@ -14,7 +14,7 @@ class IAPService {
   // Product IDs from your MD file
   static const Set<String> _productIds = {
     'com.shenghua.note.vip_3001', // VIP 1
-    'com.shenghua.note.vip_3002', // VIP 2
+    'com.shenghua.note.vip3002', // VIP 2
     'com.shenghua.note.vip_3003', // VIP 3
   };
 
