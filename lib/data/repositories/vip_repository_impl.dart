@@ -47,8 +47,12 @@ class VipRepositoryImpl implements VipRepository {
   @override
   Future<Either<Failure, void>> restorePurchases() async {
     try {
-      await iapService.restorePurchases();
-      return const Right(null);
+      final result = await iapService.restorePurchases();
+      if (result['success'] == true) {
+        return const Right(null);
+      } else {
+        return Left(PurchaseFailure(result['message'] ?? 'Restore failed'));
+      }
     } catch (e) {
       return Left(PurchaseFailure('Restore failed: $e'));
     }

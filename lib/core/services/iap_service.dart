@@ -157,12 +157,42 @@ class IAPService {
 
   /// Restores previous purchases.
   ///
-  /// Calls the underlying platform's restore purchases method.
-  Future<void> restorePurchases() async {
+  /// First checks if products are available, then calls the underlying platform's restore purchases method.
+  /// Returns a Map with 'success' and 'message' keys.
+  Future<Map<String, dynamic>> restorePurchases() async {
     try {
+      // 确保IAP可用
+      if (!await _inAppPurchase.isAvailable()) {
+        return {
+          'success': false,
+          'message': '应用内购买不可用'
+        };
+      }
+
+      // 如果产品列表为空，先尝试加载
+      if (availableProducts.isEmpty) {
+        await loadProducts();
+      }
+
+      // 再次检查产品列表
+      if (availableProducts.isEmpty) {
+        return {
+          'success': false,
+          'message': '暂无可恢复的产品，请稍后重试'
+        };
+      }
+
       await _inAppPurchase.restorePurchases();
+      return {
+        'success': true,
+        'message': '恢复购买请求已发送'
+      };
     } catch (e) {
       _logError('Restore purchases error', e);
+      return {
+        'success': false,
+        'message': '恢复购买失败: $e'
+      };
     }
   }
 

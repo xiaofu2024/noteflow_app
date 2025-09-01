@@ -56,6 +56,57 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 ],
               ),
             );
+          } else if (state is SubscriptionRestoreSuccess) {
+            // 显示恢复购买成功弹窗
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('恢复成功'),
+                  ],
+                ),
+                content: const Text('您的购买已成功恢复'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+            );
+          } else if (state is SubscriptionError) {
+            // 显示恢复购买或其他错误弹窗
+            final isRestoreError = state.message.contains('restore') || 
+                                   state.message.contains('恢复') || 
+                                   state.message.contains('暂无可恢复的产品');
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(isRestoreError ? '恢复失败' : '操作失败'),
+                  ],
+                ),
+                content: Text(state.message),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+            );
           }
         },
         child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
@@ -100,7 +151,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
             if (state is SubscriptionLoaded || 
                 state is SubscriptionPurchaseError ||
                 state is SubscriptionPurchasing ||
-                state is SubscriptionPurchaseSuccess) {
+                state is SubscriptionPurchaseSuccess ||
+                state is SubscriptionRestoring ||
+                state is SubscriptionRestoreSuccess) {
               VipConfigEntity config;
               if (state is SubscriptionLoaded) {
                 config = state.config;
@@ -109,6 +162,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
               } else if (state is SubscriptionPurchasing) {
                 config = state.config;
               } else if (state is SubscriptionPurchaseSuccess) {
+                config = state.config;
+              } else if (state is SubscriptionRestoring) {
+                config = state.config;
+              } else if (state is SubscriptionRestoreSuccess) {
                 config = state.config;
               } else {
                 return const SizedBox.shrink();
@@ -159,8 +216,9 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
                       builder: (context, state) {
-                        final isPurchasing = state is SubscriptionPurchasing && 
-                                           state.config.goods.any((p) => p.productId == product.productId);
+                        final isPurchasing = (state is SubscriptionPurchasing && 
+                                            state.config.goods.any((p) => p.productId == product.productId)) ||
+                                           state is SubscriptionRestoring;
                         return VipProductCard(
                           product: product,
                           isCurrentPlan: product.level == currentLevel && isVipActive,
@@ -173,15 +231,27 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           
           const SizedBox(height: 24),
           
-          // Restore Purchases Button
-          if (isVipActive) ...[
-            Center(
-              child: TextButton(
-                onPressed: _onRestorePurchases,
-                child: const Text('恢复购买'),
-              ),
+          // Restore Purchases Button - Always show for App Store compliance
+          Center(
+            child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
+              builder: (context, state) {
+                final isRestoring = state is SubscriptionRestoring;
+                return TextButton.icon(
+                  onPressed: isRestoring ? null : _onRestorePurchases,
+                  icon: isRestoring 
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.restore),
+                  label: Text(isRestoring ? '恢复中...' : '恢复购买'),
+                );
+              },
             ),
-          ],
+          ),
           
           const SizedBox(height: 32),
         ],
