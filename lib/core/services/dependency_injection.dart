@@ -104,6 +104,7 @@ Future<void> initializeDependencies() async {
     () => SubscriptionBloc(
       vipRepository: sl(),
       vipManager: sl(),
+      iapService: sl(),
     ),
   );
 }

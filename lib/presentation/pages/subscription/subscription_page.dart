@@ -80,6 +80,30 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 ],
               ),
             );
+          } else if (state is SubscriptionPurchaseSuccess) {
+            // 购买成功，显示成功弹窗
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('购买成功'),
+                  ],
+                ),
+                content: const Text('恭喜您！VIP购买成功'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('确定'),
+                  ),
+                ],
+              ),
+            );
           } else if (state is SubscriptionError) {
             // 显示恢复购买或其他错误弹窗
             final isRestoreError = state.message.contains('restore') || 
@@ -181,9 +205,20 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   }
 
   Widget _buildSubscriptionContent(VipConfigEntity config) {
-    final currentLevel = _vipManager.getCurrentVipLevel();
-    final expireTime = _vipManager.getVipExpireTime();
-    final isVipActive = _vipManager.isVipActive;
+    return StreamBuilder<VipLevel>(
+      stream: _vipManager.vipLevelStream,
+      builder: (context, snapshot) {
+        // 使用最新的VIP状态
+        final currentLevel = _vipManager.getCurrentVipLevel();
+        final expireTime = _vipManager.getVipExpireTime();
+        final isVipActive = _vipManager.isVipActive;
+        
+        return _buildSubscriptionUI(config, currentLevel, expireTime, isVipActive);
+      },
+    );
+  }
+
+  Widget _buildSubscriptionUI(VipConfigEntity config, VipLevel currentLevel, DateTime? expireTime, bool isVipActive) {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
