@@ -80,16 +80,32 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     RestorePurchases event,
     Emitter<SubscriptionState> emit,
   ) async {
-    if (state is! SubscriptionLoaded) return;
+    // 获取当前配置，支持更多状态类型
+    VipConfigEntity? config;
     
-    final currentState = state as SubscriptionLoaded;
-    emit(SubscriptionRestoring(currentState.config));
+    if (state is SubscriptionLoaded) {
+      config = (state as SubscriptionLoaded).config;
+    } else if (state is SubscriptionPurchaseError) {
+      config = (state as SubscriptionPurchaseError).config;
+    } else if (state is SubscriptionPurchaseSuccess) {
+      config = (state as SubscriptionPurchaseSuccess).config;
+    } else if (state is SubscriptionRestoreSuccess) {
+      config = (state as SubscriptionRestoreSuccess).config;
+    } else if (state is SubscriptionPurchasing) {
+      config = (state as SubscriptionPurchasing).config;
+    } else {
+      // 如果没有配置，直接返回错误
+      emit(const SubscriptionError('无法获取配置信息，请重新加载'));
+      return;
+    }
+    
+    emit(SubscriptionRestoring(config!));
 
     final result = await vipRepository.restorePurchases();
     
     result.fold(
       (failure) => emit(SubscriptionError(failure.message)),
-      (_) => emit(SubscriptionRestoreSuccess(currentState.config)),
+      (_) => emit(SubscriptionRestoreSuccess(config!)),
     );
   }
 
