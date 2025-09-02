@@ -8,9 +8,12 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/user_preferences_service.dart';
 import '../../../core/services/theme_manager.dart';
 import '../../../core/services/biometric_auth_service.dart';
-import '../../../core/services/data_export_service.dart';
+import '../../../core/services/data_export_service.dart' as export_service;
 import '../../../core/services/note_color_service.dart';
 import '../../../core/services/reminder_service.dart';
+import '../../../core/services/vip_manager.dart';
+import '../../../domain/entities/vip_config_entity.dart';
+import '../../widgets/vip_limit_dialog.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../settings/webview_page.dart';
@@ -28,9 +31,10 @@ class _SettingsPageState extends State<SettingsPage> {
   late UserPreferencesService _prefsService;
   late ThemeManager _themeManager;
   late BiometricAuthService _biometricService;
-  late DataExportService _exportService;
+  late export_service.DataExportService _exportService;
   late NoteColorService _colorService;
   late ReminderService _reminderService;
+  late VipManager _vipManager;
   bool _isLoading = true;
   
   // Settings values
@@ -50,9 +54,10 @@ class _SettingsPageState extends State<SettingsPage> {
     _prefsService = GetIt.instance<UserPreferencesService>();
     _themeManager = GetIt.instance<ThemeManager>();
     _biometricService = GetIt.instance<BiometricAuthService>();
-    _exportService = GetIt.instance<DataExportService>();
+    _exportService = GetIt.instance<export_service.DataExportService>();
     _colorService = GetIt.instance<NoteColorService>();
     _reminderService = GetIt.instance<ReminderService>();
+    _vipManager = VipManager();
     _loadSettings();
   }
 
@@ -144,7 +149,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('结构化数据，可用于导入备份'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportAllData(format: ExportFormat.json);
+                  _exportAllData(format: export_service.ExportFormat.json);
                 },
               ),
               ListTile(
@@ -153,7 +158,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('纯文本，便于阅读（仅用于查看）'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportAllData(format: ExportFormat.txt);
+                  _exportAllData(format: export_service.ExportFormat.txt);
                 },
               ),
               ListTile(
@@ -162,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('表格数据，便于Excel处理（仅用于查看）'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportAllData(format: ExportFormat.csv);
+                  _exportAllData(format: export_service.ExportFormat.csv);
                 },
               ),
               SizedBox(height: 16.h),
@@ -208,7 +213,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('结构化数据，可用于导入备份'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportNotesOnly(format: ExportFormat.json);
+                  _exportNotesOnly(format: export_service.ExportFormat.json);
                 },
               ),
               ListTile(
@@ -217,7 +222,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('纯文本，便于阅读（仅用于查看）'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportNotesOnly(format: ExportFormat.txt);
+                  _exportNotesOnly(format: export_service.ExportFormat.txt);
                 },
               ),
               ListTile(
@@ -226,7 +231,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 subtitle: const Text('表格数据，便于Excel处理（仅用于查看）'),
                 onTap: () {
                   Navigator.pop(context);
-                  _exportNotesOnly(format: ExportFormat.csv);
+                  _exportNotesOnly(format: export_service.ExportFormat.csv);
                 },
               ),
               SizedBox(height: 16.h),
@@ -257,7 +262,14 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Future<void> _exportAllData({ExportFormat format = ExportFormat.json}) async {
+  Future<void> _exportAllData({export_service.ExportFormat format = export_service.ExportFormat.json}) async {
+    // Check VIP export permission
+    final canExport = _vipManager.canExport(ExportData.all);
+    if (!canExport) {
+      await VipLimitDialog.checkExportLimit(context, false, suggestedLevel: VipLevel.vipLevel2);
+      return;
+    }
+    
     try {
       // 显示加载对话框
       showDialog(
@@ -279,7 +291,7 @@ class _SettingsPageState extends State<SettingsPage> {
       // 关闭加载对话框
       if (mounted) Navigator.pop(context);
 
-      if (result == ExportResult.success) {
+      if (result == export_service.ExportResult.success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -315,7 +327,14 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _exportNotesOnly({ExportFormat format = ExportFormat.json}) async {
+  Future<void> _exportNotesOnly({export_service.ExportFormat format = export_service.ExportFormat.json}) async {
+    // Check VIP export permission for notes
+    final canExport = _vipManager.canExport(ExportData.note);
+    if (!canExport) {
+      await VipLimitDialog.checkExportLimit(context, false, suggestedLevel: VipLevel.vipLevel1);
+      return;
+    }
+    
     try {
       // 显示加载对话框
       showDialog(
@@ -337,7 +356,7 @@ class _SettingsPageState extends State<SettingsPage> {
       // 关闭加载对话框
       if (mounted) Navigator.pop(context);
 
-      if (result == ExportResult.success) {
+      if (result == export_service.ExportResult.success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -1340,7 +1359,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (mounted) {
         final message = _exportService.getImportResultDescription(result);
-        final isSuccess = result == ImportResult.success;
+        final isSuccess = result == export_service.ImportResult.success;
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1403,7 +1422,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (mounted) {
         final message = _exportService.getImportResultDescription(result);
-        final isSuccess = result == ImportResult.success;
+        final isSuccess = result == export_service.ImportResult.success;
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1463,7 +1482,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
       if (mounted) {
         final message = _exportService.getImportResultDescription(result);
-        final isSuccess = result == ImportResult.success;
+        final isSuccess = result == export_service.ImportResult.success;
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

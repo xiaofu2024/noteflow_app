@@ -8,10 +8,12 @@ import 'package:uuid/uuid.dart';
 
 import '../../../core/services/ai_service.dart';
 import '../../../core/services/note_color_service.dart';
+import '../../../core/services/vip_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../editor/note_editor_page.dart';
+import '../../widgets/vip_limit_dialog.dart';
 import 'package:get_it/get_it.dart';
 
 class OCRScannerPage extends StatefulWidget {
@@ -23,11 +25,19 @@ class OCRScannerPage extends StatefulWidget {
 
 class _OCRScannerPageState extends State<OCRScannerPage> {
   final AIService _aiService = AIService();
+  final VipManager _vipManager = VipManager();
   File? _selectedImage;
   String? _recognizedText;
   bool _isProcessing = false;
 
   Future<void> _pickImageFromCamera() async {
+    // Check VIP limit first
+    final canUse = await _vipManager.canUseOCR();
+    if (!mounted) return;
+    if (!await VipLimitDialog.checkOcrLimit(context, canUse)) {
+      return;
+    }
+
     setState(() {
       _isProcessing = true;
       _recognizedText = null;
@@ -51,8 +61,12 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
         setState(() {
           _recognizedText = text;
         });
+        
+        // Record OCR usage
+        await _vipManager.recordOCRUsage();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('拍照失败: $e')),
       );
@@ -64,6 +78,13 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
   }
 
   Future<void> _pickImageFromGallery() async {
+    // Check VIP limit first
+    final canUse = await _vipManager.canUseOCR();
+    if (!mounted) return;
+    if (!await VipLimitDialog.checkOcrLimit(context, canUse)) {
+      return;
+    }
+
     setState(() {
       _isProcessing = true;
       _recognizedText = null;
@@ -87,8 +108,12 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
         setState(() {
           _recognizedText = text;
         });
+        
+        // Record OCR usage
+        await _vipManager.recordOCRUsage();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('选择图片失败: $e')),
       );
@@ -99,8 +124,14 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
     }
   }
 
-  void _createNoteFromText() {
+  Future<void> _createNoteFromText() async {
     if (_recognizedText != null && _recognizedText!.isNotEmpty) {
+      // Check VIP limit for note creation
+      final canCreate = await _vipManager.canCreateNote();
+      if (!mounted) return;
+      if (!await VipLimitDialog.checkNoteCreateLimit(context, canCreate)) {
+        return;
+      }
       final noteContent = _recognizedText!.trim();
       final colorService = GetIt.instance<NoteColorService>();
       final note = NoteEntity(
@@ -123,6 +154,9 @@ class _OCRScannerPageState extends State<OCRScannerPage> {
           ),
         ),
       );
+      
+      // Record note creation
+      await _vipManager.recordNoteCreation();
     }
   }
 

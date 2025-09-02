@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:path_provider/path_provider.dart';
@@ -8,10 +7,12 @@ import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/ai_service.dart';
 import '../../../core/services/note_color_service.dart';
+import '../../../core/services/vip_manager.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/note_entity.dart';
 import '../editor/note_editor_page.dart';
+import '../../widgets/vip_limit_dialog.dart';
 import 'package:get_it/get_it.dart';
 
 class VoiceNotePage extends StatefulWidget {
@@ -24,6 +25,7 @@ class VoiceNotePage extends StatefulWidget {
 class _VoiceNotePageState extends State<VoiceNotePage>
     with TickerProviderStateMixin {
   final AIService _aiService = AIService();
+  final VipManager _vipManager = VipManager();
   
   bool _isListening = false;
   bool _isRecording = false;
@@ -83,6 +85,13 @@ class _VoiceNotePageState extends State<VoiceNotePage>
 
   Future<void> _startListening() async {
     if (_isListening) return;
+    
+    // Check VIP limit first
+    final canUse = await _vipManager.canUseSpeechToText();
+    if (!mounted) return;
+    if (!await VipLimitDialog.checkSpeechLimit(context, canUse)) {
+      return;
+    }
 
     setState(() {
       _isListening = true;
@@ -104,6 +113,11 @@ class _VoiceNotePageState extends State<VoiceNotePage>
               _statusText = '正在识别语音...';
             }
           });
+          
+          // Record speech usage when we get a result (but only once per session)
+          if (text.isNotEmpty && !_statusText.contains('识别完成')) {
+            _vipManager.recordSpeechUsage();
+          }
         },
         onError: (error) {
           setState(() {
@@ -196,9 +210,15 @@ class _VoiceNotePageState extends State<VoiceNotePage>
     }
   }
 
-  void _createNoteFromText() {
+  Future<void> _createNoteFromText() async {
     if (_recognizedText.isNotEmpty) {
-      final noteContent = _recognizedText!.trim();
+      // Check VIP limit for note creation
+      final canCreate = await _vipManager.canCreateNote();
+      if (!mounted) return;
+      if (!await VipLimitDialog.checkNoteCreateLimit(context, canCreate)) {
+        return;
+      }
+      final noteContent = _recognizedText.trim();
       final colorService = GetIt.instance<NoteColorService>();
       final note = NoteEntity(
         id: const Uuid().v4(),
@@ -220,6 +240,9 @@ class _VoiceNotePageState extends State<VoiceNotePage>
           ),
         ),
       );
+      
+      // Record note creation
+      await _vipManager.recordNoteCreation();
       
       // TODO: Pass the recognized text to the editor
     }

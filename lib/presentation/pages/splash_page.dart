@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/services/user_preferences_service.dart';
 import '../../core/services/biometric_auth_service.dart';
+import '../../core/services/vip_debug_helper.dart';
 import 'home/main_navigation_page.dart';
 import 'auth/biometric_lock_page.dart';
 
@@ -66,6 +67,12 @@ class _SplashPageState extends State<SplashPage>
     // Start text animation with slight delay
     await Future.delayed(const Duration(milliseconds: 200));
     await _textController.forward();
+    
+    // VIP Manager is already initialized in dependency injection
+    // Print debug info in development mode
+    if (mounted) {
+      VipDebugHelper.runAllChecks();
+    }
     
     // Hold for a moment
     await Future.delayed(const Duration(milliseconds: 1000));
