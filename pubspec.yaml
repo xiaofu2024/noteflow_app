@@ -59,6 +59,7 @@ dependencies:
   webview_flutter: ^4.8.0
   dartz: ^0.10.1
   get_it: ^8.2.0
+  package_info_plus: ^8.0.2
   
   # Firebase
   firebase_core: ^2.24.2
