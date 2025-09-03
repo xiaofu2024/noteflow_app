@@ -30,9 +30,9 @@ class IAPService {
   
   // Product IDs from your MD file
   static const Set<String> _productIds = {
-    'com.shenghua.note.vip_3001', // VIP 1
-    'com.shenghua.note.vip3002', // VIP 2
-    'com.shenghua.note.vip_3003', // VIP 3
+    'com.shenghua.note.vip1', // VIP 1
+    'com.shenghua.note.vip2', // VIP 2
+    'com.shenghua.note.vip3', // VIP 3
   };
 
   // Available products
@@ -289,11 +289,11 @@ class IAPService {
   /// Returns the [VipLevel] enum corresponding to the given [productId], or `null` if unknown.
   VipLevel? getVipLevelByProductId(String productId) {
     switch (productId) {
-      case 'com.shenghua.note.vip_3001':
+      case 'com.shenghua.note.vip1':
         return VipLevel.vipLevel1;
-      case 'com.shenghua.note.vip3002':
+      case 'com.shenghua.note.vip2':
         return VipLevel.vipLevel2;
-      case 'com.shenghua.note.vip_3003':
+      case 'com.shenghua.note.vip3':
         return VipLevel.vipLevel3;
       default:
         return null;

@@ -55,13 +55,13 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
         // 根据产品ID设置相应的VIP等级和有效期
         int durationDays;
         switch (purchase.productID) {
-          case 'com.shenghua.note.vip_3001': // VIP 1 - 假设30天
+          case 'com.shenghua.note.vip1': // VIP 1 - 假设30天
             durationDays = 30;
             break;
-          case 'com.shenghua.note.vip3002': // VIP 2 - 假设90天
+          case 'com.shenghua.note.vip2': // VIP 2 - 假设90天
             durationDays = 30;
             break;
-          case 'com.shenghua.note.vip_3003': // VIP 3 - 假设365天
+          case 'com.shenghua.note.vip3': // VIP 3 - 假设365天
             durationDays = 16;
             break;
           default:

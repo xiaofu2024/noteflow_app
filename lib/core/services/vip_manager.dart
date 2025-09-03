@@ -88,7 +88,7 @@ class VipManager {
         // VIP Level 1
         VipProduct(
           id: 1,
-          productId: 'com.shenghua.note.vip_3001',
+          productId: 'com.shenghua.note.vip1',
           level: VipLevel.vipLevel1,
           ocrLimit: -1,
           noteCreateLimit: 10,
@@ -102,7 +102,7 @@ class VipManager {
         // VIP Level 2
         VipProduct(
           id: 2,
-          productId: 'com.shenghua.note.vip3002',
+          productId: 'com.shenghua.note.vip2',
           level: VipLevel.vipLevel2,
           ocrLimit: -1,
           noteCreateLimit: 50,
@@ -116,7 +116,7 @@ class VipManager {
         // VIP Level 3
         VipProduct(
           id: 3,
-          productId: 'com.shenghua.note.vip_3003',
+          productId: 'com.shenghua.note.vip3',
           level: VipLevel.vipLevel3,
           ocrLimit: -1,
           noteCreateLimit: -1,

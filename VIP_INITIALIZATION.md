@@ -77,7 +77,7 @@ Future<ApiResponse<VipConfigModel>> getIapConfig();
     "goods": [
       {
         "id": 1,
-        "productId": "com.shenghua.note.vip_3001",
+        "productId": "com.shenghua.note.vip1",
         "level": "VL_VIP_1",
         "ocrLimit": -1,
         "noteCreateLimit": 10,
