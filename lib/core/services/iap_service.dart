@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../domain/entities/vip_config_entity.dart';
 
@@ -28,12 +29,8 @@ class IAPService {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   
-  // Product IDs from your MD file
-  static const Set<String> _productIds = {
-    'com.shenghua.note.vip_3001', // VIP 1
-    'com.shenghua.note.vip3002', // VIP 2
-    'com.shenghua.note.vip_3003', // VIP 3
-  };
+  // Dynamic product IDs loaded from API
+  Set<String> _productIds = <String>{};
 
   // Available products
   List<ProductDetails> availableProducts = [];
@@ -58,7 +55,9 @@ class IAPService {
   /// Initializes the IAP service.
   ///
   /// Checks platform support, availability of in-app purchases,
-  /// sets up purchase update listener, and loads available products.
+  /// and sets up purchase update listener.
+  ///
+  /// Note: Products will be loaded after VIP config is available via updateProductIds().
   ///
   /// Returns `true` if initialization succeeds, `false` otherwise.
   Future<bool> initialize() async {
@@ -83,9 +82,7 @@ class IAPService {
         },
       );
 
-      // Load available products
-      await loadProducts();
-
+      debugPrint('IAP Service initialized successfully');
       return true;
     } catch (e) {
       _logError('IAP initialization error', e);
@@ -93,12 +90,35 @@ class IAPService {
     }
   }
 
-  /// Loads product details for the predefined product IDs.
+  /// Updates product IDs from VIP configuration and loads products.
+  ///
+  /// This method should be called after VIP config is loaded from API.
+  Future<void> updateProductIds(Set<String> productIds) async {
+    try {
+      _productIds = productIds;
+      debugPrint('Updated product IDs: $_productIds');
+      
+      if (_productIds.isNotEmpty) {
+        await loadProducts();
+      } else {
+        debugPrint('No product IDs to load');
+      }
+    } catch (e) {
+      _logError('Error updating product IDs', e);
+    }
+  }
+
+  /// Loads product details for the current product IDs.
   ///
   /// Updates the `availableProducts` list with the loaded products.
   /// Logs errors if product loading fails.
   Future<void> loadProducts() async {
     try {
+      if (_productIds.isEmpty) {
+        debugPrint('No product IDs available for loading products');
+        return;
+      }
+
       final ProductDetailsResponse response =
           await _inAppPurchase.queryProductDetails(_productIds);
 
@@ -107,8 +127,8 @@ class IAPService {
       }
 
       availableProducts = response.productDetails;
-      print('Loaded ${availableProducts.length} products');
-      print('Available product IDs: ${availableProducts.map((p) => p.id).toList()}');
+      debugPrint('Loaded ${availableProducts.length} products');
+      debugPrint('Available product IDs: ${availableProducts.map((p) => p.id).toList()}');
     } catch (e) {
       _logError('Error loading products', e);
     }

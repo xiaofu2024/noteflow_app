@@ -43,13 +43,6 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton<BiometricAuthService>(() => BiometricAuthService());
   sl.registerLazySingleton<DataExportService>(() => DataExportService());
   
-  // VIP Services
-  sl.registerLazySingleton<VipManager>(() => VipManager());
-  await sl<VipManager>().initialize();
-  
-  sl.registerLazySingleton<IAPService>(() => IAPService());
-  await sl<IAPService>().initialize();
-  
   // Network
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio();
@@ -70,6 +63,10 @@ Future<void> initializeDependencies() async {
     () => VipApiService(sl()),
   );
 
+  // IAP Service (needs to be registered before VipRepository)
+  sl.registerLazySingleton<IAPService>(() => IAPService());
+  await sl<IAPService>().initialize();
+
   // Repositories
   sl.registerLazySingleton<NotesRepository>(
     () => NotesRepositoryImpl(localDataSource: sl()),
@@ -81,6 +78,10 @@ Future<void> initializeDependencies() async {
       iapService: sl(),
     ),
   );
+  
+  // VIP Manager (needs VipRepository to be registered first)
+  sl.registerLazySingleton<VipManager>(() => VipManager());
+  await sl<VipManager>().initialize();
 
   // Use cases
   sl.registerLazySingleton(() => GetNotesUseCase(sl()));

@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'vip_manager.dart';
+import 'iap_service.dart';
 import '../../domain/entities/vip_config_entity.dart';
 
 /// Debug helper class for VIP functionality testing
 class VipDebugHelper {
   static final VipManager _vipManager = GetIt.instance<VipManager>();
+  static final IAPService _iapService = IAPService();
 
   /// Print current VIP status and configuration
   static void printVipStatus() {
@@ -48,6 +50,11 @@ class VipDebugHelper {
     } else {
       debugPrint('Current Product: null (VIP config not loaded)');
     }
+    
+    // IAP Service status
+    debugPrint('--- IAP Service Status ---');
+    debugPrint('Available Products: ${_iapService.availableProducts.length}');
+    debugPrint('Product IDs: ${_iapService.availableProducts.map((p) => p.id).toList()}');
     
     debugPrint('======================');
   }

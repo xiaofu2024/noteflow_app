@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get_it/get_it.dart';
 import '../../domain/entities/vip_config_entity.dart';
 import '../../domain/repositories/vip_repository.dart';
+import 'iap_service.dart';
 
 class VipManager {
   static final VipManager _instance = VipManager._internal();
@@ -135,6 +136,25 @@ class VipManager {
 
   void updateVipConfig(VipConfigEntity config) {
     _vipConfig = config;
+    
+    // Update IAP service with product IDs from the new config
+    _updateIAPServiceProductIds();
+  }
+  
+  /// Updates IAP service with product IDs from the current VIP configuration
+  void _updateIAPServiceProductIds() {
+    try {
+      final iapService = IAPService();
+      final productIds = _vipConfig?.goods
+          .where((product) => product.productId.isNotEmpty)
+          .map((product) => product.productId)
+          .toSet() ?? <String>{};
+      
+      debugPrint('Updating IAP service with product IDs: $productIds');
+      iapService.updateProductIds(productIds);
+    } catch (e) {
+      debugPrint('Error updating IAP service product IDs: $e');
+    }
   }
 
   /// Get current VIP configuration (for debugging)
