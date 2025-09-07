@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_it/get_it.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/services/user_preferences_service.dart';
 import '../../../core/services/theme_manager.dart';
@@ -47,6 +48,8 @@ class _SettingsPageState extends State<SettingsPage> {
   double _fontSize = 14.0;
   String _noteViewMode = 'grid';
   int? _defaultNoteColor;
+  String _appVersion = '1.0.0';
+  String _buildNumber = '1';
 
   @override
   void initState() {
@@ -62,6 +65,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadSettings() async {
+    // Load package info for app version
+    final packageInfo = await PackageInfo.fromPlatform();
+    
     setState(() {
       _biometricEnabled = _prefsService.biometricEnabled;
       _autoSyncEnabled = _prefsService.autoSyncEnabled;
@@ -72,6 +78,8 @@ class _SettingsPageState extends State<SettingsPage> {
       _fontSize = _prefsService.fontSize;
       _noteViewMode = _prefsService.noteViewMode;
       _defaultNoteColor = _colorService.defaultNoteColor;
+      _appVersion = packageInfo.version;
+      _buildNumber = packageInfo.buildNumber;
       _isLoading = false;
     });
   }
@@ -807,7 +815,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   _buildTile(
                     title: '应用版本',
-                    subtitle: '1.0.0 (Build 1)',
+                    subtitle: '$_appVersion (Build $_buildNumber)',
                     onTap: null,
                   ),
                   _buildTile(

@@ -2,7 +2,7 @@ name: noteflow_app
 description: "盛华笔记 - 智能笔记应用，支持AI功能的现代化笔记管理工具"
 publish_to: 'none'
 
-version: 1.0.2+1
+version: 1.0.3+1
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
@@ -59,6 +59,7 @@ dependencies:
   webview_flutter: ^4.8.0
   dartz: ^0.10.1
   get_it: ^8.2.0
+  package_info_plus: ^8.0.2
   
   # Firebase
   firebase_core: ^2.24.2

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import '../../domain/entities/vip_config_entity.dart';
 
@@ -29,8 +28,12 @@ class IAPService {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   
-  // Dynamic product IDs loaded from API
-  Set<String> _productIds = <String>{};
+  // Product IDs from your MD file
+  static const Set<String> _productIds = {
+    'com.shenghua.note.vip1', // VIP 1
+    'com.shenghua.note.vip2', // VIP 2
+    'com.shenghua.note.vip3', // VIP 3
+  };
 
   // Available products
   List<ProductDetails> availableProducts = [];
@@ -55,9 +58,7 @@ class IAPService {
   /// Initializes the IAP service.
   ///
   /// Checks platform support, availability of in-app purchases,
-  /// and sets up purchase update listener.
-  ///
-  /// Note: Products will be loaded after VIP config is available via updateProductIds().
+  /// sets up purchase update listener, and loads available products.
   ///
   /// Returns `true` if initialization succeeds, `false` otherwise.
   Future<bool> initialize() async {
@@ -82,7 +83,9 @@ class IAPService {
         },
       );
 
-      debugPrint('IAP Service initialized successfully');
+      // Load available products
+      await loadProducts();
+
       return true;
     } catch (e) {
       _logError('IAP initialization error', e);
@@ -90,35 +93,12 @@ class IAPService {
     }
   }
 
-  /// Updates product IDs from VIP configuration and loads products.
-  ///
-  /// This method should be called after VIP config is loaded from API.
-  Future<void> updateProductIds(Set<String> productIds) async {
-    try {
-      _productIds = productIds;
-      debugPrint('Updated product IDs: $_productIds');
-      
-      if (_productIds.isNotEmpty) {
-        await loadProducts();
-      } else {
-        debugPrint('No product IDs to load');
-      }
-    } catch (e) {
-      _logError('Error updating product IDs', e);
-    }
-  }
-
-  /// Loads product details for the current product IDs.
+  /// Loads product details for the predefined product IDs.
   ///
   /// Updates the `availableProducts` list with the loaded products.
   /// Logs errors if product loading fails.
   Future<void> loadProducts() async {
     try {
-      if (_productIds.isEmpty) {
-        debugPrint('No product IDs available for loading products');
-        return;
-      }
-
       final ProductDetailsResponse response =
           await _inAppPurchase.queryProductDetails(_productIds);
 
@@ -127,8 +107,8 @@ class IAPService {
       }
 
       availableProducts = response.productDetails;
-      debugPrint('Loaded ${availableProducts.length} products');
-      debugPrint('Available product IDs: ${availableProducts.map((p) => p.id).toList()}');
+      print('Loaded ${availableProducts.length} products');
+      print('Available product IDs: ${availableProducts.map((p) => p.id).toList()}');
     } catch (e) {
       _logError('Error loading products', e);
     }
@@ -309,11 +289,11 @@ class IAPService {
   /// Returns the [VipLevel] enum corresponding to the given [productId], or `null` if unknown.
   VipLevel? getVipLevelByProductId(String productId) {
     switch (productId) {
-      case 'com.shenghua.note.vip_3001':
+      case 'com.shenghua.note.vip1':
         return VipLevel.vipLevel1;
-      case 'com.shenghua.note.vip3002':
+      case 'com.shenghua.note.vip2':
         return VipLevel.vipLevel2;
-      case 'com.shenghua.note.vip_3003':
+      case 'com.shenghua.note.vip3':
         return VipLevel.vipLevel3;
       default:
         return null;

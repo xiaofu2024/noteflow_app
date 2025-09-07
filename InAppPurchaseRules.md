@@ -54,7 +54,7 @@ Api baseUrl = https://shl-api.weletter01.com
             },
             {
                 "id": 3,
-                "productId": "com.shenghua.note.vip_3001",
+                "productId": "com.shenghua.note.vip1",
                 "level": "VL_VIP_1",
                 "ocrLimit": -1,
                 "noteCreateLimit": 10,
@@ -67,7 +67,7 @@ Api baseUrl = https://shl-api.weletter01.com
             },
             {
                 "id": 5,
-                "productId": "com.shenghua.note.vip3002",
+                "productId": "com.shenghua.note.vip2",
                 "level": "VL_VIP_2",
                 "ocrLimit": -1,
                 "noteCreateLimit": 50,
@@ -80,7 +80,7 @@ Api baseUrl = https://shl-api.weletter01.com
             },
             {
                 "id": 7,
-                "productId": "com.shenghua.note.vip_3003",
+                "productId": "com.shenghua.note.vip3",
                 "level": "VL_VIP_3",
                 "ocrLimit": -1,
                 "noteCreateLimit": -1,
